@@ -1,0 +1,1047 @@
+// 自動新聞爬蟲系統
+// 定期爬取指定新聞來源，並自動處理、改寫和發布文章
+
+import { prisma } from '@/lib/prisma'
+import { simpleScrapeArticle } from '@/lib/simple-scraper'
+import { ArticleContent } from '@/lib/web-scraper'
+import { rewriteArticleWithAI } from '@/lib/telegram-bot'
+import { MonitoringService, MonitoringConfig, LogLevel } from '@/lib/monitoring-service'
+import { ContentQualityChecker, ArticleData } from '@/lib/content-quality-checker'
+import { DuplicateChecker } from '@/lib/duplicate-checker'
+
+// 爬取結果介面
+interface CrawlResult {
+  sourceId: string
+  success: boolean
+  articlesFound: number
+  articlesProcessed: number
+  articlesPublished: number
+  errors: string[]
+  crawlTime: Date
+}
+
+// 新聞來源介面
+export interface NewsSource {
+  id: string
+  name: string
+  url: string
+  rssUrl?: string
+  enabled: boolean
+  maxArticlesPerCrawl: number
+  crawlInterval: number
+  lastCrawl?: Date
+  selectors?: {
+    articleLinks?: string
+    title?: string
+    content?: string
+    author?: string
+    date?: string
+  }
+}
+
+// 系統設定介面
+interface SystemSettings {
+  autoPublish: boolean
+  aiRewriteEnabled: boolean
+  openaiApiKey: string
+  seoKeywords: string
+  crawlInterval: number
+}
+
+export class AutoNewsCrawler {
+  private settings: SystemSettings | null = null
+  private isRunning = false
+  private crawlInterval: NodeJS.Timeout | null = null
+  private monitor: MonitoringService | null = null
+  private qualityChecker: ContentQualityChecker
+  private duplicateChecker: DuplicateChecker
+
+  constructor() {
+    this.loadSettings()
+    this.qualityChecker = new ContentQualityChecker()
+    this.duplicateChecker = new DuplicateChecker()
+  }
+
+  // 獲取運行狀態
+  public getRunningStatus(): boolean {
+    return this.isRunning
+  }
+
+  // 載入系統設定
+  private async loadSettings(): Promise<void> {
+    try {
+      const settings = await prisma.setting.findMany({
+        where: {
+          key: {
+            in: [
+              'auto_publish_enabled',
+              'ai_rewrite_enabled',
+              'openai_api_key',
+              'seo_keywords',
+              'auto_crawl_interval',
+              'telegram_bot_token',
+              'telegram_chat_id',
+              'email_api_key',
+              'notification_emails',
+              'notify_on_success',
+              'notify_on_failure',
+              'notify_on_partial'
+            ]
+          }
+        }
+      })
+
+      const settingsMap = new Map<string, string>(
+        settings.map((s: { key: string; value: string }) => [s.key, s.value])
+      )
+
+      this.settings = {
+        autoPublish: settingsMap.get('auto_publish_enabled') === 'true',
+        aiRewriteEnabled: settingsMap.get('ai_rewrite_enabled') === 'true',
+        openaiApiKey: settingsMap.get('openai_api_key') || '',
+        seoKeywords: settingsMap.get('seo_keywords') || '',
+        crawlInterval: parseInt(settingsMap.get('auto_crawl_interval') || '60') * 60 * 1000 // 轉換為毫秒
+      }
+
+      // 初始化監控服務
+      const monitorConfig: MonitoringConfig = {
+        enableTelegram: !!settingsMap.get('telegram_bot_token'),
+        telegramBotToken: settingsMap.get('telegram_bot_token'),
+        telegramChatId: settingsMap.get('telegram_chat_id'),
+        enableEmail: !!settingsMap.get('email_api_key'),
+        emailApiKey: settingsMap.get('email_api_key'),
+        emailTo: settingsMap.get('notification_emails')?.split(',').map((e: string) => e.trim()) || [],
+        notifyOnSuccess: settingsMap.get('notify_on_success') === 'true',
+        notifyOnFailure: settingsMap.get('notify_on_failure') !== 'false', // 預設為 true
+        notifyOnPartialSuccess: settingsMap.get('notify_on_partial') === 'true'
+      }
+      
+      this.monitor = new MonitoringService(monitorConfig)
+
+      // 系統設定載入完成
+    } catch (error) {
+      console.error('載入系統設定失敗:', error)
+      this.settings = {
+        autoPublish: false,
+        aiRewriteEnabled: false,
+        openaiApiKey: '',
+        seoKeywords: '',
+        crawlInterval: 60 * 60 * 1000 // 預設 1 小時
+      }
+      
+      // 使用預設監控設定
+      this.monitor = new MonitoringService({
+        enableTelegram: false,
+        enableEmail: false,
+        notifyOnSuccess: false,
+        notifyOnFailure: true,
+        notifyOnPartialSuccess: false
+      })
+    }
+  }
+
+  // 開始自動爬取
+  async startAutoCrawl(): Promise<void> {
+    if (this.isRunning) {
+      console.log('自動爬取已在運行中')
+      return
+    }
+
+    console.log('開始自動爬取...')
+    this.isRunning = true
+
+    // 獲取並行爬取設定
+    const parallelSettings = await this.getParallelSettings()
+
+    // 立即執行一次
+    await this.performCrawl(parallelSettings)
+
+    // 設定定期執行
+    this.crawlInterval = setInterval(async () => {
+      if (this.isRunning) {
+        console.log('執行定期爬取...')
+        const currentSettings = await this.getParallelSettings()
+        await this.performCrawl(currentSettings)
+      }
+    }, this.settings?.crawlInterval || 60 * 60 * 1000)
+    
+    console.log(`自動爬取已啟動，間隔: ${(this.settings?.crawlInterval || 60 * 60 * 1000) / 1000 / 60} 分鐘`)
+  }
+  
+  // 獲取並行爬取設定
+  private async getParallelSettings(): Promise<{ parallel: boolean; concurrentLimit: number }> {
+    try {
+      const settings = await prisma.setting.findMany({
+        where: {
+          key: {
+            in: ['parallel_crawling', 'concurrent_limit']
+          }
+        }
+      })
+      
+      const settingsMap = new Map(settings.map(s => [s.key, s.value]))
+      
+      return {
+        parallel: settingsMap.get('parallel_crawling') !== 'false', // 預設為 true
+        concurrentLimit: parseInt(settingsMap.get('concurrent_limit') || '3')
+      }
+    } catch (error) {
+      console.error('獲取並行爬取設定失敗:', error)
+      return { parallel: true, concurrentLimit: 3 }
+    }
+  }
+
+  // 停止自動爬取
+  stopAutoCrawl(): void {
+    console.log('停止自動爬取...')
+    this.isRunning = false
+    
+    if (this.crawlInterval) {
+      clearInterval(this.crawlInterval)
+      this.crawlInterval = null
+    }
+  }
+
+  // 執行一次完整的爬取（優化並行處理）
+  async performCrawl(options: { parallel?: boolean; concurrentLimit?: number } = {}): Promise<CrawlResult[]> {
+    const { parallel = true, concurrentLimit = 3 } = options
+    
+    try {
+      // 重新載入設定
+      await this.loadSettings()
+
+      // 獲取啟用的新聞來源
+      const sources = await this.getEnabledSources()
+      
+      if (sources.length === 0) {
+        return []
+      }
+
+      let results: CrawlResult[] = []
+
+      if (!parallel || sources.length === 1) {
+        // 序列處理
+        console.log(`開始序列爬取 ${sources.length} 個新聞來源...`)
+        for (const source of sources) {
+          try {
+            const result = await this.crawlSource(source)
+            results.push(result)
+          } catch (error) {
+            console.error(`爬取 ${source.name} 時發生錯誤:`, error)
+            results.push({
+              sourceId: source.id,
+              success: false,
+              articlesFound: 0,
+              articlesProcessed: 0,
+              articlesPublished: 0,
+              errors: [error instanceof Error ? error.message : '未知錯誤'],
+              crawlTime: new Date()
+            })
+          }
+        }
+      } else {
+        // 並行處理（含批次控制）
+        console.log(`開始並行爬取 ${sources.length} 個新聞來源（並發限制：${concurrentLimit}）...`)
+        
+        // 將來源分批處理
+        const batches: NewsSource[][] = []
+        for (let i = 0; i < sources.length; i += concurrentLimit) {
+          batches.push(sources.slice(i, i + concurrentLimit))
+        }
+        
+        // 批次並行處理
+        for (let i = 0; i < batches.length; i++) {
+          const batch = batches[i]
+          console.log(`處理第 ${i + 1}/${batches.length} 批次：${batch.map(s => s.name).join(', ')}`)
+          
+          const batchStartTime = Date.now()
+          const batchPromises = batch.map(source => 
+            this.crawlSource(source).catch(error => {
+              console.error(`爬取 ${source.name} 時發生錯誤:`, error)
+              return {
+                sourceId: source.id,
+                success: false,
+                articlesFound: 0,
+                articlesProcessed: 0,
+                articlesPublished: 0,
+                errors: [error instanceof Error ? error.message : '未知錯誤'],
+                crawlTime: new Date()
+              }
+            })
+          )
+          
+          const batchResults = await Promise.all(batchPromises)
+          const batchDuration = Math.round((Date.now() - batchStartTime) / 1000)
+          console.log(`批次 ${i + 1} 完成，耗時 ${batchDuration} 秒`)
+          
+          results.push(...batchResults)
+          
+          // 批次間稍作延遲，避免過載
+          if (i < batches.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 2000)) // 2秒延遲
+          }
+        }
+      }
+
+      // 記錄爬取結果
+      await this.logCrawlResults(results)
+      
+      // 顯示總結
+      const totalArticles = results.reduce((sum, r) => sum + r.articlesProcessed, 0)
+      const totalPublished = results.reduce((sum, r) => sum + r.articlesPublished, 0)
+      const successCount = results.filter(r => r.success).length
+      
+      console.log(`
+爬取完成總結：
+- 成功來源：${successCount}/${sources.length}
+- 總處理文章：${totalArticles} 篇
+- 總發布文章：${totalPublished} 篇
+      `)
+      
+      return results
+
+    } catch (error) {
+      console.error('執行新聞爬取失敗:', error)
+      return []
+    }
+  }
+
+  // 獲取啟用的新聞來源
+  private async getEnabledSources(): Promise<NewsSource[]> {
+    try {
+      // 從資料庫獲取新聞來源配置
+      const dbSources = await prisma.newsSource.findMany({
+        where: { enabled: true }
+      })
+
+      if (dbSources.length > 0) {
+        // 將資料庫來源轉換為 NewsSource 格式
+        return dbSources.map((source: any) => ({
+          id: source.id,
+          name: source.name,
+          url: source.url,
+          rssUrl: source.rssUrl || undefined,
+          enabled: source.enabled,
+          maxArticlesPerCrawl: source.maxArticlesPerCrawl,
+          crawlInterval: source.crawlInterval,
+          lastCrawl: source.lastCrawl || undefined,
+          selectors: source.selectors ? JSON.parse(source.selectors as string) : undefined
+        }))
+      }
+
+      // 如果資料庫沒有配置，使用預設的汽車相關新聞來源
+      console.log('使用預設新聞來源')
+      return await this.initializeDefaultSources()
+
+    } catch (error) {
+      console.error('獲取新聞來源失敗:', error)
+      return []
+    }
+  }
+
+  // 爬取單個來源
+  private async crawlSource(source: NewsSource): Promise<CrawlResult> {
+    // 開始監控
+    if (this.monitor) {
+      this.monitor.startCrawl(source.id, source.name)
+    }
+    
+    const result: CrawlResult = {
+      sourceId: source.id,
+      success: false,
+      articlesFound: 0,
+      articlesProcessed: 0,
+      articlesPublished: 0,
+      errors: [],
+      crawlTime: new Date()
+    }
+
+    try {
+      // 1. 獲取文章列表
+      const articleUrls = await this.getArticleUrls(source)
+      result.articlesFound = articleUrls.length
+
+      // 更新監控統計
+      if (this.monitor) {
+        this.monitor.updateStats(source.id, { articlesFound: articleUrls.length })
+      }
+
+      if (articleUrls.length === 0) {
+        const error = '未找到文章連結'
+        result.errors.push(error)
+        if (this.monitor) {
+          this.monitor.recordError(source.id, error)
+        }
+        return result
+      }
+
+      console.log(`找到 ${articleUrls.length} 篇文章`)
+      if (this.monitor) {
+        this.monitor.log(LogLevel.INFO, `找到 ${articleUrls.length} 篇文章`, { source: source.name })
+      }
+
+      // 2. 處理文章（限制數量）
+      const urlsToProcess = articleUrls.slice(0, source.maxArticlesPerCrawl)
+
+      for (const url of urlsToProcess) {
+        try {
+          // 檢查是否已存在
+          if (await this.isDuplicateArticle(url)) {
+            console.log(`跳過重複文章: ${url}`)
+            continue
+          }
+
+          // 爬取文章內容（使用簡化版爬蟲）
+          const articleData = await simpleScrapeArticle(url)
+          
+          // AI 改寫
+          const processedArticle = await this.processArticle(articleData, source)
+          
+          // 儲存並發布
+          if (processedArticle) {
+            await this.saveAndPublishArticle(processedArticle, source)
+            result.articlesProcessed++
+            result.articlesPublished++
+            
+            // 更新監控統計
+            if (this.monitor) {
+              this.monitor.updateStats(source.id, {
+                articlesProcessed: result.articlesProcessed,
+                articlesPublished: result.articlesPublished
+              })
+            }
+          }
+
+          // 延遲避免過快請求
+          await this.delay(3000)
+
+        } catch (error) {
+          console.error(`處理文章失敗 ${url}:`, error)
+          const errorMsg = `處理文章失敗: ${error instanceof Error ? error.message : '未知錯誤'}`
+          result.errors.push(errorMsg)
+          
+          // 記錄錯誤到監控
+          if (this.monitor) {
+            this.monitor.recordError(source.id, errorMsg)
+          }
+        }
+      }
+
+      result.success = result.articlesProcessed > 0
+
+    } catch (error) {
+      console.error(`爬取來源失敗 ${source.name}:`, error)
+      const errorMsg = `爬取來源失敗: ${error instanceof Error ? error.message : '未知錯誤'}`
+      result.errors.push(errorMsg)
+      
+      if (this.monitor) {
+        this.monitor.recordError(source.id, errorMsg)
+      }
+    }
+
+    // 結束監控並發送通知
+    if (this.monitor) {
+      await this.monitor.endCrawl(source.id)
+    }
+
+    return result
+  }
+
+  // 獲取文章 URL 列表
+  private async getArticleUrls(source: NewsSource): Promise<string[]> {
+    try {
+      console.log(`開始獲取 ${source.name} 的文章列表...`)
+      
+      // 使用簡單的 HTTP 請求獲取文章列表
+      const axios = require('axios')
+      const cheerio = require('cheerio')
+      
+      const response = await axios.get(source.url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+          'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        timeout: 30000,
+        maxRedirects: 5
+      })
+      
+      const $ = cheerio.load(response.data)
+      const links: string[] = []
+      
+      // 嘗試多種選擇器策略
+      const selectors = [
+        // 優先使用自定義選擇器
+        source.selectors?.articleLinks,
+        // 通用新聞網站選擇器
+        'article a[href]',
+        '.article-list a[href]',
+        '.news-list a[href]',
+        '.post-list a[href]',
+        '.entry-title a[href]',
+        '.post-title a[href]',
+        'h2 a[href]',
+        'h3 a[href]',
+        '.title a[href]',
+        '.headline a[href]',
+        // 最後使用最通用的選擇器
+        'a[href]'
+      ].filter(Boolean)
+      
+      // 收集所有可能的連結
+      const allHrefs = new Set<string>()
+      
+      for (const selector of selectors) {
+        $(selector).each((_: any, elem: any) => {
+          const href = $(elem).attr('href')
+          if (href && href.trim()) {
+            try {
+              // 轉換為絕對 URL
+              const absoluteUrl = new URL(href, source.url).toString()
+              allHrefs.add(absoluteUrl)
+            } catch (e) {
+              // 忽略無效的 URL
+            }
+          }
+        })
+      }
+      
+      // 過濾文章連結
+      const articlePatterns = [
+        /\/article\//i,
+        /\/news\//i,
+        /\/post\//i,
+        /\/story\//i,
+        /\/content\//i,
+        /\/\d{4}\/\d{2}\//,  // 日期格式 /2024/01/
+        /\d{6,}/,            // 包含至少6位數字（文章ID）
+        /\.html?$/i,         // .html 或 .htm 結尾
+        /\/p\/\d+/,          // /p/12345 格式
+        /\?id=\d+/           // ?id=12345 格式
+      ]
+      
+      // 排除模式
+      const excludePatterns = [
+        /\/tag\//i,
+        /\/category\//i,
+        /\/author\//i,
+        /\/page\//i,
+        /\/search/i,
+        /\/login/i,
+        /\/register/i,
+        /\.(jpg|jpeg|png|gif|pdf|zip)$/i,
+        /#/,  // 錨點連結
+        /javascript:/i,
+        /mailto:/i
+      ]
+      
+      for (const href of allHrefs) {
+        // 排除特定模式
+        if (excludePatterns.some(pattern => pattern.test(href))) {
+          continue
+        }
+        
+        // 排除與來源 URL 相同的連結
+        if (href === source.url || href === source.url + '/') {
+          continue
+        }
+        
+        // 確保是同域名或子域名
+        try {
+          const sourceHost = new URL(source.url).hostname
+          const linkHost = new URL(href).hostname
+          if (!linkHost.endsWith(sourceHost.replace('www.', ''))) {
+            continue
+          }
+        } catch (e) {
+          continue
+        }
+        
+        // 檢查是否符合文章模式
+        if (articlePatterns.some(pattern => pattern.test(href))) {
+          links.push(href)
+        }
+      }
+      
+      // 如果沒有找到符合模式的連結，嘗試更寬鬆的策略
+      if (links.length === 0 && allHrefs.size > 0) {
+        console.log(`使用寬鬆策略尋找文章連結...`)
+        for (const href of allHrefs) {
+          // 排除明顯不是文章的連結
+          if (excludePatterns.some(pattern => pattern.test(href))) {
+            continue
+          }
+          
+          // 檢查連結文字是否像文章標題（中文字符較多）
+          const linkText = $(`a[href="${href}"]`).first().text().trim()
+          if (linkText && linkText.match(/[\u4e00-\u9fa5]/g)?.length > 5) {
+            links.push(href)
+          }
+        }
+      }
+      
+      // 去重並限制數量
+      const uniqueLinks = [...new Set(links)]
+        .slice(0, source.maxArticlesPerCrawl || 5)
+
+      console.log(`從 ${source.name} 獲取到 ${uniqueLinks.length} 個連結`)
+      if (uniqueLinks.length > 0) {
+        console.log('文章連結範例:', uniqueLinks[0])
+      }
+      
+      return uniqueLinks
+
+    } catch (error) {
+      console.error(`獲取文章連結失敗 ${source.name}:`, error)
+      return []
+    }
+  }
+
+  // 檢查是否為重複文章
+  private async isDuplicateArticle(url: string): Promise<boolean> {
+    try {
+      const existing = await prisma.news.findFirst({
+        where: {
+          OR: [
+            { slug: { contains: url.split('/').pop() } },
+            { content: { contains: url } }
+          ]
+        }
+      })
+
+      return existing !== null
+    } catch (error) {
+      console.error('檢查重複文章失敗:', error)
+      return false
+    }
+  }
+
+  // 處理文章（去重檢查 + AI 改寫）
+  private async processArticle(articleData: ArticleContent, source: NewsSource): Promise<ArticleContent | null> {
+    try {
+      // 先進行去重檢查
+      const duplicateCheck = await this.duplicateChecker.checkDuplicate(
+        articleData.url,
+        articleData.title,
+        articleData.content,
+        source.id
+      )
+      
+      if (duplicateCheck.isDuplicate) {
+        console.log(`文章重複: ${articleData.title}`)
+        console.log(`重複類型: ${duplicateCheck.duplicateType}, 置信度: ${Math.round(duplicateCheck.confidence * 100)}%`)
+        console.log(`原因: ${duplicateCheck.reason}`)
+        
+        if (this.monitor) {
+          this.monitor.log(LogLevel.INFO, `跳過重複文章: ${articleData.title}`, {
+            duplicateType: duplicateCheck.duplicateType,
+            confidence: duplicateCheck.confidence,
+            existingArticleId: duplicateCheck.existingArticleId
+          })
+        }
+        
+        return null
+      }
+      
+      let processedContent = articleData.content
+      let processedTitle = articleData.title
+
+      // 如果啟用 AI 改寫
+      if (this.settings?.aiRewriteEnabled && this.settings?.openaiApiKey) {
+        console.log(`使用 AI 改寫文章: ${articleData.title}`)
+        
+        try {
+          processedContent = await rewriteArticleWithAI(
+            articleData.content,
+            this.settings.seoKeywords,
+            this.settings.openaiApiKey
+          )
+
+          // 也可以改寫標題
+          processedTitle = await this.rewriteTitle(
+            articleData.title,
+            this.settings.seoKeywords,
+            this.settings.openaiApiKey
+          )
+        } catch (error) {
+          console.error('AI 改寫失敗，使用原始內容:', error)
+        }
+      }
+
+      // 建構處理後的文章
+      const processedArticle: ArticleContent = {
+        ...articleData,
+        title: processedTitle,
+        content: processedContent,
+        tags: [
+          ...(articleData.tags || []),
+          ...this.settings?.seoKeywords.split(',').map(k => k.trim()) || []
+        ]
+      }
+      
+      // 執行品質檢查
+      const articleForQualityCheck: ArticleData = {
+        title: processedArticle.title,
+        content: processedArticle.content,
+        author: processedArticle.author,
+        publishDate: processedArticle.publishDate,
+        tags: processedArticle.tags,
+        coverImage: processedArticle.source,
+        excerpt: processedArticle.excerpt
+      }
+      
+      const qualityScore = this.qualityChecker.checkQuality(
+        articleForQualityCheck,
+        this.settings?.seoKeywords.split(',').map(k => k.trim()) || []
+      )
+      
+      // 記錄品質檢查結果
+      if (this.monitor) {
+        this.monitor.log(LogLevel.INFO, `文章品質檢查完成: ${processedTitle}`, {
+          overall: qualityScore.overall,
+          issues: qualityScore.issues.length,
+          suggestions: qualityScore.suggestions.length
+        })
+      }
+      
+      // 如果品質分數太低，嘗試自動修復
+      if (qualityScore.overall < 60) {
+        console.log(`文章品質過低（${qualityScore.overall}分），嘗試自動修復...`)
+        const fixedArticle = this.qualityChecker.autoFixContent(articleForQualityCheck)
+        
+        // 更新處理後的文章
+        processedArticle.title = fixedArticle.title
+        processedArticle.content = fixedArticle.content
+        if (fixedArticle.excerpt) {
+          processedArticle.excerpt = fixedArticle.excerpt
+        }
+        
+        // 重新檢查品質
+        const newScore = this.qualityChecker.checkQuality(fixedArticle, this.settings?.seoKeywords.split(',').map(k => k.trim()) || [])
+        console.log(`修復後品質分數: ${newScore.overall}`)
+      }
+      
+      // 如果品質仍然太低，可能拒絕發布
+      if (qualityScore.overall < 40) {
+        console.warn(`文章品質過低（${qualityScore.overall}分），建議不發布`)
+        if (this.monitor) {
+          this.monitor.recordError(source.id, `文章品質過低: ${processedTitle} (${qualityScore.overall}分)`)
+        }
+      }
+
+      return processedArticle
+
+    } catch (error) {
+      console.error('處理文章失敗:', error)
+      return null
+    }
+  }
+
+  // 改寫標題
+  private async rewriteTitle(title: string, keywords: string, apiKey: string): Promise<string> {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: `你是一個專業的汽車冷氣和冷媒領域的內容編輯。請改寫以下標題，讓它更適合SEO並包含這些關鍵字：${keywords}。
+
+重要要求：
+1. 必須使用繁體中文（Traditional Chinese）
+2. 禁止使用簡體中文字符
+3. 保持標題簡潔有力，不超過50個字
+4. 適當融入 SEO 關鍵字
+5. 確保標題吸引人且專業
+
+請確認你的回應完全使用繁體中文。`
+            },
+            {
+              role: 'user',
+              content: `請將以下標題改寫為繁體中文，並融入相關關鍵字：${title}`
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 100,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('OpenAI API 請求失敗')
+      }
+
+      const data = await response.json()
+      return data.choices[0].message.content.trim()
+    } catch (error) {
+      console.error('標題改寫失敗:', error)
+      return title
+    }
+  }
+
+  // 儲存並發布文章
+  private async saveAndPublishArticle(articleData: ArticleContent, source: NewsSource): Promise<void> {
+    try {
+      // 使用 SEO 優化的爬蟲處理文章
+      const { SEONewsCrawler } = await import('./seo-news-crawler')
+      const seoCrawler = new SEONewsCrawler()
+      
+      // 獲取 SEO 優化的文章資料
+      const seoArticle = await seoCrawler.processArticleForSEO(
+        articleData.url,
+        source.name
+      )
+      
+      // 檢查設定是否自動發布
+      const autoPublish = await this.shouldAutoPublish()
+      
+      // 生成內容哈希
+      const contentHash = this.duplicateChecker.generateContentHash(seoArticle.content)
+      
+      // @ts-ignore - contentHash 和 sourceId 欄位需要 prisma generate
+      const news = await prisma.news.create({
+        data: {
+          ...seoArticle,
+          isPublished: autoPublish,
+          publishedAt: autoPublish ? new Date() : null,
+          sourceId: source.id,
+          contentHash: contentHash
+        }
+      })
+
+      console.log(`文章已${autoPublish ? '發布' : '儲存為草稿'}: ${seoArticle.title}`)
+      console.log(`SEO 優化: 關鍵字 ${seoArticle.seoKeywords}, 閱讀時間 ${seoArticle.readingTime} 分鐘`)
+
+    } catch (error) {
+      console.error('儲存文章失敗:', error)
+      throw error
+    }
+  }
+
+  // 檢查是否應該自動發布
+  private async shouldAutoPublish(): Promise<boolean> {
+    return this.settings?.autoPublish || false
+  }
+
+  // 生成 slug
+  private generateSlug(title: string): string {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      + '-' + Date.now()
+  }
+
+  // 延遲函數
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  // 初始化預設新聞來源
+  private async initializeDefaultSources(): Promise<NewsSource[]> {
+    try {
+      // 預設的汽車和冷媒相關新聞來源
+      const defaultSources = [
+        {
+          name: 'U-CAR 汽車新聞',
+          url: 'https://news.u-car.com.tw/',
+          enabled: true,
+          maxArticlesPerCrawl: 3,
+          crawlInterval: 120, // 2小時
+          selectors: JSON.stringify({
+            articleLinks: '.news-list a.news-list-item',
+            title: 'h1.article-title',
+            content: '.article-content',
+            author: '.article-author',
+            date: '.article-date'
+          })
+        },
+        {
+          name: 'CarStuff 人車事',
+          url: 'https://www.carstuff.com.tw/',
+          enabled: true,
+          maxArticlesPerCrawl: 3,
+          crawlInterval: 120,
+          selectors: JSON.stringify({
+            articleLinks: 'article h2 a',
+            title: 'h1.entry-title',
+            content: '.entry-content',
+            author: '.author-name',
+            date: 'time'
+          })
+        },
+        {
+          name: '癮車報',
+          url: 'https://www.cool3c.com/tag/car',
+          enabled: true,
+          maxArticlesPerCrawl: 3,
+          crawlInterval: 120,
+          selectors: JSON.stringify({
+            articleLinks: '.postlist h3 a',
+            title: 'h1.post-title',
+            content: '.post-content',
+            author: '.author',
+            date: '.post-date'
+          })
+        },
+        {
+          name: '車訊網',
+          url: 'https://carnews.com/category/news',
+          enabled: true,
+          maxArticlesPerCrawl: 3,
+          crawlInterval: 120,
+          selectors: JSON.stringify({
+            articleLinks: '.item-title a',
+            title: 'h1.entry-title',
+            content: '.entry-content',
+            author: '.author-name',
+            date: '.entry-date'
+          })
+        },
+        {
+          name: '8891 汽車新聞',
+          url: 'https://c.8891.com.tw/news',
+          enabled: true,
+          maxArticlesPerCrawl: 3,
+          crawlInterval: 180, // 3小時
+          selectors: JSON.stringify({
+            articleLinks: '.news-list a',
+            title: 'h1.article-title',
+            content: '.article-content',
+            author: '.author',
+            date: '.publish-date'
+          })
+        },
+        {
+          name: 'CARTURE 車勢文化',
+          url: 'https://www.carture.com.tw/articles/news',
+          enabled: false, // 預設關閉，需要時再啟用
+          maxArticlesPerCrawl: 3,
+          crawlInterval: 180,
+          selectors: JSON.stringify({
+            articleLinks: '.post-title a',
+            title: 'h1.post-title',
+            content: '.post-content',
+            author: '.author-name',
+            date: '.post-date'
+          })
+        },
+        {
+          name: 'AutoNet 汽車日報',
+          url: 'https://www.autonet.com.tw/news',
+          enabled: false,
+          maxArticlesPerCrawl: 3,
+          crawlInterval: 180,
+          selectors: JSON.stringify({
+            articleLinks: '.news-list a',
+            title: 'h1.article-title',
+            content: '.article-content',
+            author: '.author',
+            date: '.publish-date'
+          })
+        },
+        {
+          name: '發燒車訊',
+          url: 'https://autos.udn.com/autos/cate/6715',
+          enabled: false,
+          maxArticlesPerCrawl: 3,
+          crawlInterval: 240, // 4小時
+          selectors: JSON.stringify({
+            articleLinks: '.story-list a',
+            title: 'h1.article-content__title',
+            content: '.article-content__body',
+            author: '.article-content__author',
+            date: '.article-content__time'
+          })
+        }
+      ]
+
+      // 將預設來源儲存到資料庫
+      for (const source of defaultSources) {
+        await prisma.newsSource.create({
+          data: source
+        })
+      }
+
+      console.log('已初始化預設新聞來源')
+      
+      // 返回新聞來源
+      const sources = await prisma.newsSource.findMany({
+        where: { enabled: true }
+      })
+
+      return sources.map((source: any) => ({
+        id: source.id,
+        name: source.name,
+        url: source.url,
+        rssUrl: source.rssUrl || undefined,
+        enabled: source.enabled,
+        maxArticlesPerCrawl: source.maxArticlesPerCrawl,
+        crawlInterval: source.crawlInterval,
+        lastCrawl: source.lastCrawl || undefined,
+        selectors: source.selectors ? JSON.parse(source.selectors as string) : undefined
+      }))
+
+    } catch (error) {
+      console.error('初始化預設新聞來源失敗:', error)
+      return []
+    }
+  }
+
+  // 記錄爬取結果
+  private async logCrawlResults(results: CrawlResult[]): Promise<void> {
+    try {
+      const summary = {
+        totalSources: results.length,
+        successfulSources: results.filter(r => r.success).length,
+        totalArticlesFound: results.reduce((sum, r) => sum + r.articlesFound, 0),
+        totalArticlesProcessed: results.reduce((sum, r) => sum + r.articlesProcessed, 0),
+        totalArticlesPublished: results.reduce((sum, r) => sum + r.articlesPublished, 0),
+        totalErrors: results.reduce((sum, r) => sum + r.errors.length, 0)
+      }
+
+      console.log('爬取結果摘要:', summary)
+
+      // 可以將結果儲存到資料庫或發送通知
+      if (summary.totalErrors > 0) {
+        console.warn('爬取過程中發生錯誤:', results.flatMap(r => r.errors))
+      }
+
+    } catch (error) {
+      console.error('記錄爬取結果失敗:', error)
+    }
+  }
+}
+
+// 導出爬蟲實例
+export const autoNewsCrawler = new AutoNewsCrawler()
+
+// 便利函數
+export function getAutoCrawler(): AutoNewsCrawler {
+  return autoNewsCrawler
+}
+
+export async function startAutoCrawl(): Promise<void> {
+  return await autoNewsCrawler.startAutoCrawl()
+}
+
+export function stopAutoCrawl(): void {
+  autoNewsCrawler.stopAutoCrawl()
+}
+
+export async function getCrawlStats(): Promise<any> {
+  return {
+    isRunning: autoNewsCrawler['isRunning'], // 存取私有屬性
+    totalSources: 2, // 硬編碼的來源數量
+    activeSources: 2,
+    lastCrawl: new Date(),
+    status: 'ready'
+  }
+} 

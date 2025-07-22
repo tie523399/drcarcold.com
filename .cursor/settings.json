@@ -1,0 +1,7 @@
+{
+  "ai.model": "claude-4-opus Max",
+  "ai.temperature": 0.7,
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "typescript.preferences.importModuleSpecifier": "relative"
+}

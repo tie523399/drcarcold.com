@@ -1,0 +1,234 @@
+{
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "refrigerantLookup": "Refrigerant Lookup",
+    "news": "News",
+    "about": "About Us",
+    "contact": "Contact"
+  },
+  "home": {
+    "hero": {
+      "title": "Professional Automotive Refrigerant & Equipment Supplier",
+      "subtitle": "Dr. Car Cold provides high-quality automotive refrigerants, maintenance equipment and tools",
+      "cta": {
+        "products": "View Products",
+        "contact": "Contact Us"
+      }
+    },
+    "lookup": {
+      "title": "Automotive Refrigerant Lookup",
+      "subtitle": "Quick search for refrigerant capacity information across vehicle brands",
+      "regular": "Regular Vehicles",
+      "regularDesc": "Toyota, Honda, Nissan and more",
+      "truck": "Heavy Vehicles",
+      "truckDesc": "Hino, Mitsubishi Fuso trucks",
+      "malaysia": "Malaysian Vehicles",
+      "malaysiaDesc": "Proton, Perodua brands",
+      "cta": "Search Now"
+    },
+    "why": {
+      "title": "Why Choose Dr. Car Cold",
+      "subtitle": "We are professional automotive refrigerant and maintenance equipment suppliers, providing quality products to auto repair shops"
+    },
+    "feature": {
+      "equipment": "Quality Products",
+      "equipmentDesc": "Various automotive refrigerants, oils, maintenance equipment and professional products",
+      "support": "Technical Consultation",
+      "supportDesc": "Professional team provides product selection advice and technical support",
+      "customer": "Sufficient Stock",
+      "customerDesc": "Complete product line with sufficient inventory for quick delivery"
+    },
+    "cta": {
+      "title": "Need Automotive Refrigerant or Equipment?",
+      "subtitle": "Contact us now for the best quality products from Dr. Car Cold",
+      "button": "Get Consultation"
+    },
+    "news": {
+      "title": "Latest News",
+      "subtitle": "Stay updated with the latest automotive refrigerant maintenance information and technical trends",
+      "readMore": "Read More",
+      "viewAll": "View All"
+    }
+  },
+  "products": {
+    "title": "Products",
+    "subtitle": "We provide various automotive refrigerants, maintenance equipment and related tools",
+    "category": {
+      "all": "All Products",
+      "machine": "1700F A/C System Maintenance Machine",
+      "refrigerant": "Juhua JH R-134A Eco-Friendly Refrigerant",
+      "connector": "Quick Connectors",
+      "oil": "Refrigeration Oil/Other Oils",
+      "tools": "Tools/Consumable Parts",
+      "pipe": "Refrigerant Pipes/Gauge Sets",
+      "other": "Other Related Auxiliary Tools"
+    },
+    "search": {
+      "placeholder": "Search products..."
+    },
+    "price": "Price",
+    "features": "Features:",
+    "inquiry": "Inquiry",
+    "details": "Details",
+    "inStock": "In Stock",
+    "outOfStock": "Out of Stock",
+    "contactForPrice": "Contact for Price",
+    "noProducts": "No products found",
+    "orderInfo": "Order Information",
+    "wholesale": "Wholesale only, please inquire",
+    "contactForOrder": "Please contact us for ordering",
+    "contactUs": "Contact Us",
+    "productId": "Product ID"
+  },
+  "lookup": {
+    "title": "Automotive Refrigerant Lookup System",
+    "subtitle": "Quick search for refrigerant capacity information",
+    "category": {
+      "regular": "Regular Vehicle Refrigerant",
+      "regularDesc": "Car brands refrigerant information",
+      "truck": "Heavy Vehicle Refrigerant",
+      "truckDesc": "Trucks and buses",
+      "malaysia": "Malaysian Vehicle Refrigerant",
+      "malaysiaDesc": "Malaysian vehicle brands"
+    },
+    "search": {
+      "title": "Search Vehicle Refrigerant Info",
+      "brand": "Select Brand",
+      "brandPlaceholder": "Please select a brand",
+      "model": "Search Model",
+      "modelPlaceholder": "Enter model name",
+      "button": "Search",
+      "loading": "Searching..."
+    },
+    "results": {
+      "title": "Search Results",
+      "model": "Model",
+      "year": "Year",
+      "engine": "Engine Type",
+      "refrigerant": "Refrigerant Type",
+      "amount": "Fill Amount",
+      "oil": "Refrigerant Oil",
+      "notes": "Notes"
+    },
+    "noResults": "Please select brand or enter model to search"
+  },
+  "about": {
+    "hero": {
+      "title": "About Dr. Car Cold",
+      "subtitle": "Your Trusted Professional Automotive Refrigerant Supplier"
+    },
+    "intro": {
+      "title": "Company Introduction",
+      "paragraph1": "Dr. Car Cold was established in 2015 in Longjing District, Taichung City, as a professional automotive refrigerant and equipment supplier. We are committed to providing high-quality automotive refrigerant products, including R134a, R1234yf eco-friendly refrigerants, as well as various refrigeration oils and professional maintenance equipment.",
+      "paragraph2": "Over the years, we have adhered to the business philosophy of 'Quality First, Service Supreme' and established long-term stable partnerships with auto repair shops throughout Taiwan. We not only provide quality products but also value after-sales service and technical support to ensure customers receive the most comprehensive service.",
+      "paragraph3": "With the rise of environmental awareness, we actively introduce new eco-friendly refrigerants to help customers meet environmental regulations. At the same time, we continuously expand our product line to provide more diversified choices to meet different customer needs."
+    },
+    "mission": {
+      "title": "Our Mission",
+      "content": "To provide the highest quality automotive refrigerant products and professional services, becoming our customers' most trusted partner, and contributing together to environmental protection and sustainable development."
+    },
+    "vision": {
+      "title": "Our Vision",
+      "content": "To become the leading brand in Taiwan's automotive refrigerant industry, leading the industry towards a more environmentally friendly and efficient direction with innovative technology and quality service."
+    },
+    "whyUs": {
+      "title": "Why Choose Dr. Car Cold"
+    },
+    "features": {
+      "quality": {
+        "title": "Quality Assurance",
+        "description": "All products undergo strict quality inspection to ensure compliance with international standards"
+      },
+      "delivery": {
+        "title": "Fast Delivery",
+        "description": "Complete logistics system ensures rapid product delivery"
+      },
+      "service": {
+        "title": "Instant Service",
+        "description": "Professional team provides technical support at any time"
+      },
+      "innovation": {
+        "title": "Innovative Technology",
+        "description": "Continuously introducing the latest refrigerant technology and equipment"
+      }
+    },
+    "timeline": {
+      "title": "Development History",
+      "2015": "Company established, focusing on automotive refrigerant wholesale business",
+      "2017": "Introduced R1234yf new eco-friendly refrigerant",
+      "2019": "Expanded product line, added refrigerant filling equipment",
+      "2021": "Established complete technical support team",
+      "2023": "Became the leading automotive refrigerant supplier in Central Taiwan"
+    },
+    "cta": {
+      "title": "Partner With Us",
+      "subtitle": "Whether you are an auto repair shop, maintenance shop or related business, we welcome establishing long-term partnerships with you",
+      "contact": "Contact Now",
+      "products": "View Products"
+    }
+  },
+  "news": {
+    "title": "News",
+    "subtitle": "Stay updated with the latest automotive refrigerant industry news and technical information",
+                     "description": "Learn about Dr. Car Cold's latest updates, industry news and technical articles",
+    "views": "views",
+    "noNews": "No news available",
+    "readMore": "Read More",
+    "backToNews": "Back to News",
+    "relatedArticles": "Related Articles",
+    "shareArticle": "Share Article",
+    "copyLink": "Copy Link",
+    "linkCopied": "Link copied to clipboard"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Welcome to contact us, we will serve you wholeheartedly",
+    "info": {
+      "title": "Contact Information",
+      "subtitle": "You can contact us through the following methods"
+    },
+    "address": "Address",
+    "addressValue": "No. 8, Alley 33, Lane 278, Haiwei Rd., Zhonghe Village, Longjing Dist., Taichung City, Taiwan",
+    "phone": "Phone",
+    "phoneValue": "04-26301915",
+    "fax": "Fax: 04-26301510",
+    "mobile": "Mobile",
+    "mobileValue": "0903-049150",
+    "line": "LINE ID",
+    "lineValue": "0903049150",
+    "email": "Email",
+    "emailValue": "hongshun.TW@gmail.com",
+    "hours": "Business Hours",
+    "hoursWeekday": "Monday to Friday",
+    "hoursTime": "09:30 AM - 05:30 PM",
+    "form": {
+      "title": "Send Message",
+      "subtitle": "Please fill out the form below and we will reply as soon as possible",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "subject": "Subject",
+      "message": "Message",
+      "send": "Send Message",
+      "sending": "Sending...",
+      "success": "Thank you for your message, we will reply as soon as possible!",
+      "error": "An error occurred while sending the message. Please try again later or contact us directly"
+    }
+  },
+  "footer": {
+    "quickLinks": "Quick Links",
+    "contact": "Contact Info",
+    "hours": "Business Hours: Monday-Friday 09:30 - 17:30",
+    "copyright": "© 2024 Dr. Car Cold. All rights reserved."
+  },
+  "seo": {
+    "titleSuffix": " | Dr. Car Cold - Professional Automotive Refrigerant & Equipment Supplier",
+    "descriptionDefault": "Dr. Car Cold provides professional automotive refrigerants, refrigerant filling equipment, refrigeration oils and related tools. We offer refrigerant information lookup for all vehicle brands, heavy vehicles, and Malaysian vehicles."
+  },
+  "common": {
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "An error occurred"
+  }
+} 

@@ -1,0 +1,158 @@
+/* Animations */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Glow effect */
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(192, 192, 192, 0.5), 0 0 10px rgba(192, 192, 192, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(192, 192, 192, 0.8), 0 0 30px rgba(192, 192, 192, 0.4);
+  }
+}
+
+.glow-effect {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Gradient shift */
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 5s ease infinite;
+}
+
+/* Float animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.shimmer-effect {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 3s linear infinite;
+}
+
+/* Glass effect with animation */
+@keyframes glass-effect {
+  0%, 100% {
+    backdrop-filter: blur(10px);
+  }
+  50% {
+    backdrop-filter: blur(15px);
+  }
+}
+
+.glass-effect-animated {
+  animation: glass-effect 4s ease-in-out infinite;
+}
+
+/* Rainbow border */
+@keyframes rainbow-border {
+  0%, 100% {
+    border-color: #c0c0c0;
+  }
+  25% {
+    border-color: #a0a0a0;
+  }
+  50% {
+    border-color: #808080;
+  }
+  75% {
+    border-color: #b0b0b0;
+  }
+}
+
+.rainbow-border {
+  border: 2px solid;
+  animation: rainbow-border 4s linear infinite;
+}
+
+/* Neon text effect */
+@keyframes neon-text {
+  0%, 100% {
+    text-shadow: 0 0 5px rgba(192, 192, 192, 0.8),
+                 0 0 10px rgba(192, 192, 192, 0.6),
+                 0 0 15px rgba(192, 192, 192, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 10px rgba(192, 192, 192, 1),
+                 0 0 20px rgba(192, 192, 192, 0.8),
+                 0 0 30px rgba(192, 192, 192, 0.6);
+  }
+}
+
+.neon-text {
+  animation: neon-text 2s ease-in-out infinite;
+}
+
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+} 

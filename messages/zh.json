@@ -1,0 +1,234 @@
+{
+  "nav": {
+    "home": "首頁",
+    "products": "產品展示",
+    "refrigerantLookup": "冷媒填充查詢",
+    "news": "最新消息",
+    "about": "關於我們",
+    "contact": "聯絡我們"
+  },
+  "home": {
+    "hero": {
+      "title": "專業汽車冷媒與設備供應商",
+      "subtitle": "車冷博士提供高品質汽車冷媒、保養設備及相關工具",
+      "cta": {
+        "products": "瀏覽產品",
+        "contact": "聯絡我們"
+      }
+    },
+    "lookup": {
+      "title": "汽車冷媒填充查詢",
+      "subtitle": "快速查詢各品牌車型的冷媒充填量資訊",
+      "regular": "一般車輛",
+      "regularDesc": "Toyota、Honda、Nissan 等品牌",
+      "truck": "大型車輛",
+      "truckDesc": "Hino、三菱扶桑等卡車品牌",
+      "malaysia": "馬來西亞車",
+      "malaysiaDesc": "Proton、Perodua 等品牌",
+      "cta": "立即查詢"
+    },
+    "why": {
+      "title": "為什麼選擇車冷博士",
+      "subtitle": "我們是專業的汽車冷媒與保養設備供應商，提供最優質的產品給汽車維修業者"
+    },
+    "feature": {
+      "equipment": "優質產品",
+      "equipmentDesc": "提供各式汽車冷媒、冷凍油、保養設備等專業產品",
+      "support": "技術諮詢",
+      "supportDesc": "專業團隊提供產品選購建議與技術支援",
+      "customer": "庫存充足",
+      "customerDesc": "完整的產品線與充足庫存，快速供貨"
+    },
+    "cta": {
+      "title": "需要汽車冷媒或保養設備嗎？",
+      "subtitle": "立即聯絡我們，讓車冷博士為您提供最優質的產品",
+      "button": "立即諮詢"
+    },
+    "news": {
+      "title": "最新消息",
+      "subtitle": "掌握汽車冷媒保養的最新資訊與技術動態",
+      "readMore": "閱讀更多",
+      "viewAll": "查看全部"
+    }
+  },
+  "products": {
+    "title": "產品展示",
+    "subtitle": "我們提供各式汽車冷媒、保養設備及相關工具",
+    "category": {
+      "all": "全部產品",
+      "machine": "1700F冷氣系統保養機",
+      "refrigerant": "巨化 JH R-134A 環保冷媒",
+      "connector": "快速接頭",
+      "oil": "冷凍機油/其他油品",
+      "tools": "工具/耗品零件",
+      "pipe": "冷媒管/錶組",
+      "other": "其他相關輔助工具"
+    },
+    "search": {
+      "placeholder": "搜尋產品..."
+    },
+    "price": "價格",
+    "features": "特色：",
+    "inquiry": "詢價",
+    "details": "詳細資訊",
+    "inStock": "有庫存",
+    "outOfStock": "無庫存",
+    "contactForPrice": "請洽詢價格",
+    "noProducts": "找不到相關產品",
+    "orderInfo": "訂購資訊",
+    "wholesale": "批發銷售，歡迎詢價",
+    "contactForOrder": "請聯絡我們洽詢訂購",
+    "contactUs": "聯絡我們",
+    "productId": "產品編號"
+  },
+  "lookup": {
+    "title": "汽車冷媒填充查詢系統",
+    "subtitle": "快速查詢各品牌車型的冷媒充填量資訊",
+    "category": {
+      "regular": "一般車輛冷媒填充",
+      "regularDesc": "各品牌汽車冷媒充填資訊",
+      "truck": "大型車冷媒填充",
+      "truckDesc": "卡車、巴士等大型車輛",
+      "malaysia": "馬來西亞車冷媒填充",
+      "malaysiaDesc": "馬來西亞品牌車輛"
+    },
+    "search": {
+      "title": "查詢車輛冷媒資訊",
+      "brand": "選擇品牌",
+      "brandPlaceholder": "請選擇品牌",
+      "model": "搜尋車型",
+      "modelPlaceholder": "輸入車型名稱",
+      "button": "搜尋",
+      "loading": "搜尋中..."
+    },
+    "results": {
+      "title": "搜尋結果",
+      "model": "車型",
+      "year": "年份",
+      "engine": "引擎型式",
+      "refrigerant": "冷媒種類",
+      "amount": "充填量",
+      "oil": "冷凍油",
+      "notes": "備註"
+    },
+    "noResults": "請選擇品牌或輸入車型進行搜尋"
+  },
+  "about": {
+    "hero": {
+      "title": "關於車冷博士",
+      "subtitle": "您值得信賴的專業汽車冷媒供應商"
+    },
+    "intro": {
+      "title": "公司簡介",
+              "paragraph1": "車冷博士成立於2015年，位於台中市龍井區，是一家專業的汽車冷媒與設備供應商。我們致力於提供高品質的汽車冷媒產品，包括R134a、R1234yf環保冷媒，以及各種冷凍油和專業保養設備。",
+      "paragraph2": "多年來，我們秉持「品質第一，服務至上」的經營理念，與全台各地的汽車維修廠建立了長期穩定的合作關係。我們不僅提供優質的產品，更重視售後服務和技術支援，確保客戶獲得最完善的服務。",
+      "paragraph3": "隨著環保意識的抬頭，我們積極引進新型環保冷媒，協助客戶符合環保法規。同時，我們也不斷擴充產品線，提供更多元化的選擇，滿足不同客戶的需求。"
+    },
+    "mission": {
+      "title": "我們的使命",
+      "content": "提供最高品質的汽車冷媒產品和專業服務，成為客戶最信賴的合作夥伴，共同為環保和永續發展貢獻心力。"
+    },
+    "vision": {
+      "title": "我們的願景",
+      "content": "成為台灣汽車冷媒產業的領導品牌，以創新技術和優質服務，引領產業朝向更環保、更高效的方向發展。"
+    },
+    "whyUs": {
+              "title": "為什麼選擇車冷博士"
+    },
+    "features": {
+      "quality": {
+        "title": "品質保證",
+        "description": "所有產品均經過嚴格品質檢驗，確保符合國際標準"
+      },
+      "delivery": {
+        "title": "快速配送",
+        "description": "完整的物流體系，確保產品快速送達"
+      },
+      "service": {
+        "title": "即時服務",
+        "description": "專業團隊隨時提供技術支援"
+      },
+      "innovation": {
+        "title": "創新技術",
+        "description": "持續引進最新的冷媒技術與設備"
+      }
+    },
+    "timeline": {
+      "title": "發展歷程",
+      "2015": "公司成立，專注於汽車冷媒批發業務",
+      "2017": "引進R1234yf新型環保冷媒",
+      "2019": "擴充產品線，增加冷媒充填設備",
+      "2021": "建立完整的技術支援團隊",
+      "2023": "成為中台灣地區領導的汽車冷媒供應商"
+    },
+    "cta": {
+      "title": "與我們合作",
+      "subtitle": "無論您是汽車維修廠、保養廠或相關業者，我們都歡迎與您建立長期的合作關係",
+      "contact": "立即聯絡",
+      "products": "查看產品"
+    }
+  },
+  "news": {
+    "title": "最新消息",
+    "subtitle": "掌握汽車冷媒產業最新動態與技術資訊",
+                     "description": "了解車冷博士的最新動態、產業新聞和技術文章",
+    "views": "次瀏覽",
+    "noNews": "目前沒有新聞",
+    "readMore": "閱讀更多",
+    "backToNews": "返回新聞列表",
+    "relatedArticles": "相關文章",
+    "shareArticle": "分享文章",
+    "copyLink": "複製連結",
+    "linkCopied": "連結已複製到剪貼簿"
+  },
+  "contact": {
+    "title": "聯絡我們",
+    "subtitle": "歡迎聯絡我們，我們將竭誠為您服務",
+    "info": {
+      "title": "聯絡資訊",
+      "subtitle": "您可以透過以下方式與我們聯絡"
+    },
+    "address": "地址",
+    "addressValue": "台中市龍井區中和村海尾路278巷33弄8號",
+    "phone": "電話",
+    "phoneValue": "04-26301915",
+    "fax": "傳真: 04-26301510",
+    "mobile": "手機",
+    "mobileValue": "0903-049150",
+    "line": "LINE ID",
+    "lineValue": "0903049150",
+    "email": "電子信箱",
+    "emailValue": "hongshun.TW@gmail.com",
+    "hours": "營業時間",
+    "hoursWeekday": "週一至週五",
+    "hoursTime": "上午 09:30 - 下午 05:30",
+    "form": {
+      "title": "發送訊息",
+      "subtitle": "請填寫以下表單，我們會盡快回覆您",
+      "name": "姓名",
+      "email": "電子信箱",
+      "phone": "電話",
+      "subject": "主旨",
+      "message": "訊息內容",
+      "send": "發送訊息",
+      "sending": "發送中...",
+      "success": "感謝您的訊息，我們會盡快回覆！",
+      "error": "發送訊息時發生錯誤，請稍後再試或直接聯絡我們"
+    }
+  },
+  "footer": {
+    "quickLinks": "快速連結",
+    "contact": "聯絡資訊",
+    "hours": "營業時間：週一至週五 09:30 - 17:30",
+    "copyright": "© 2024 車冷博士。版權所有。"
+  },
+  "seo": {
+    "titleSuffix": " | 車冷博士 - 專業汽車冷媒與設備供應商",
+    "descriptionDefault": "車冷博士提供專業的汽車冷媒、冷媒充填設備、冷凍油及相關工具銷售。提供各品牌汽車、大型車輛、馬來西亞車的冷媒資訊查詢服務。"
+  },
+  "common": {
+    "back": "返回",
+    "loading": "載入中...",
+    "error": "發生錯誤"
+  }
+} 

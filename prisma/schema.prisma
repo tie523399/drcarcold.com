@@ -1,0 +1,277 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String?
+  role          String    @default("ADMIN")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Product {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String
+  category      Category  @relation(fields: [categoryId], references: [id])
+  categoryId    String
+  price         Float?
+  images        String    @default("[]")
+  features      String    @default("[]")
+  specifications String   @default("{}")
+  stock         Int       @default(0)
+  isActive      Boolean   @default(true)
+  seoTitle      String?
+  seoDescription String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([categoryId])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  seoTitle    String?   // SEO 標題
+  seoDescription String? // SEO 描述
+  seoKeywords String?   // SEO 關鍵字
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Refrigerant {
+  id            String    @id @default(cuid())
+  name          String
+  code          String    @unique
+  type          String
+  gwp           Float
+  odp           Float
+  boilingPoint  Float
+  criticalTemp  Float
+  properties    String    @default("{}")
+  applications  String    @default("[]")
+  safety        String    @default("{}")
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([code])
+}
+
+model News {
+  id            String    @id @default(cuid())
+  title         String
+  slug          String    @unique
+  content       String
+  excerpt       String
+  coverImage    String?
+  author        String
+  tags          String    @default("[]")
+  viewCount     Int       @default(0)
+  publishedAt   DateTime?
+  scheduledAt   DateTime?
+  isPublished   Boolean   @default(false)
+  seoTitle      String?
+  seoDescription String?
+  seoKeywords   String?   // SEO 關鍵字
+  canonicalUrl  String?   // 標準網址
+  ogTitle       String?   // Open Graph 標題
+  ogDescription String?   // Open Graph 描述
+  ogImage       String?   // Open Graph 圖片
+  structuredData String?  // JSON-LD 結構化資料
+  readingTime   Int?      // 閱讀時間（分鐘）
+  sourceUrl     String?   // 原始文章連結
+  sourceName    String?   // 來源網站名稱
+  sourceId      String?   // 新聞來源 ID
+  contentHash   String?   // 內容哈希值，用於去重
+  relatedNews   String?   // 相關新聞 ID 列表 (JSON)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([slug])
+  @@index([publishedAt])
+  @@index([tags])
+  @@index([sourceName])
+  @@index([sourceId])
+  @@index([contentHash])
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model VehicleBrand {
+  id          String    @id @default(cuid())
+  name        String
+  nameEn      String
+  category    String    // "regular", "truck", "malaysia"
+  order       Int       @default(0)
+  models      VehicleModel[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([category])
+}
+
+model VehicleModel {
+  id              String    @id @default(cuid())
+  brandId         String
+  brand           VehicleBrand @relation(fields: [brandId], references: [id])
+  modelName       String
+  year            String?
+  engineType      String?
+  refrigerantType String    // R134a, R1234yf, etc
+  fillAmount      String    // 充填量
+  oilType         String?   // 冷凍油類型
+  oilAmount       String?   // 油量
+  notes           String?   // 備註
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([brandId])
+  @@index([modelName])
+}
+
+model Banner {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  image       String
+  thumbnail   String?
+  link        String?
+  position    String    @default("homepage") // homepage, products, about
+  order       Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([position])
+  @@index([order])
+}
+
+model NewsSource {
+  id                 String    @id @default(cuid())
+  name               String
+  url                String
+  rssUrl             String?
+  enabled            Boolean   @default(true)
+  maxArticlesPerCrawl Int      @default(5)
+  crawlInterval      Int       @default(60) // 分鐘
+  lastCrawl          DateTime?
+  selectors          String?   // JSON 格式的選擇器配置
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([enabled])
+}
+
+// 公司基本資訊
+model CompanyInfo {
+  id              String    @id @default(cuid())
+  companyName     String    @default("車冷博士")
+  companyNameEn   String    @default("Dr. Car Cold")
+  phone           String    @default("04-26301915")
+  fax             String?
+  email           String    @default("hongshun.TW@gmail.com")
+  address         String    @default("台中市龍井區臨港東路二段100號")
+  addressEn       String?
+  businessHours   String    @default("週一至週五 8:30-17:30")
+  businessHoursEn String?
+  description     String?   // 公司簡介
+  descriptionEn   String?
+  updatedAt       DateTime  @updatedAt
+}
+
+// 首頁功能特點
+model Feature {
+  id            String    @id @default(cuid())
+  icon          String    // 圖標名稱
+  title         String
+  titleEn       String
+  description   String
+  descriptionEn String
+  order         Int       @default(0)
+  isActive      Boolean   @default(true)
+  position      String    @default("homepage") // homepage, about, etc.
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([position])
+  @@index([order])
+}
+
+// 公司里程碑
+model Milestone {
+  id            String    @id @default(cuid())
+  year          String
+  event         String
+  eventEn       String
+  description   String?
+  descriptionEn String?
+  order         Int       @default(0)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([year])
+  @@index([order])
+}
+
+// SEO 內容管理
+model SeoContent {
+  id              String    @id @default(cuid())
+  page            String    @unique // products, about, home, etc.
+  title           String
+  titleEn         String
+  description     String
+  descriptionEn   String
+  keywords        String    // 逗號分隔的關鍵字
+  keywordsEn      String
+  content         String?   // 頁面 SEO 內容
+  contentEn       String?
+  ogTitle         String?   // Open Graph 標題
+  ogDescription   String?
+  ogImage         String?
+  structuredData  String?   // JSON-LD 結構化資料
+  updatedAt       DateTime  @updatedAt
+
+  @@index([page])
+}
+
+// 爬取日誌
+model CrawlLog {
+  id                String    @id @default(cuid())
+  sourceId          String
+  sourceName        String
+  startTime         DateTime
+  endTime           DateTime
+  duration          Int       // 秒
+  articlesFound     Int
+  articlesProcessed Int
+  articlesPublished Int
+  articlesFailed    Int       @default(0)
+  errors            String?   // JSON 格式的錯誤陣列
+  success           Boolean
+  createdAt         DateTime  @default(now())
+
+  @@index([sourceId])
+  @@index([createdAt])
+  @@index([success])
+}

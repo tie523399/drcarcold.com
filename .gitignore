@@ -1,0 +1,66 @@
+# 依賴項
+/node_modules
+/.pnp
+.pnp.js
+
+# 測試
+/coverage
+
+# Next.js
+/.next/
+/out/
+
+# 生產構建
+/build
+
+# 雜項
+.DS_Store
+*.pem
+
+# 調試日誌
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 本地環境文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Prisma
+/prisma/dev.db
+/prisma/dev.db-journal
+
+# 上傳的檔案
+/public/uploads/banners/*
+/public/uploads/products/*
+/public/uploads/news/*
+/public/uploads/categories/*
+/public/uploads/test/*
+!/public/uploads/**/README.md
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+
+# Railway
+.railway/
+
+# 日誌
+*.log
+
+# 暫存檔
+*.tmp
+*.temp

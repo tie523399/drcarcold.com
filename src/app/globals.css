@@ -1,0 +1,438 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import '../styles/animations.css';
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-primary-300 rounded-full;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary-400;
+  }
+}
+
+/* Silver Gradient Effects */
+@layer utilities {
+  .bg-gradient-silver {
+    @apply bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300;
+  }
+  
+  .bg-gradient-silver-dark {
+    @apply bg-gradient-to-br from-gray-700 via-gray-800 to-gray-900;
+  }
+  
+  .bg-gradient-primary {
+    @apply bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700;
+  }
+  
+  .text-gradient-silver {
+    @apply bg-gradient-to-r from-gray-600 via-gray-700 to-gray-800 bg-clip-text text-transparent;
+  }
+}
+
+/* Button Effects */
+@layer components {
+  .btn-silver {
+    @apply relative overflow-hidden transition-all duration-300 ease-out;
+    @apply bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600;
+    @apply hover:from-gray-500 hover:via-gray-600 hover:to-gray-700;
+    @apply shadow-md hover:shadow-xl hover:scale-105;
+    @apply before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent;
+    @apply before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700;
+  }
+  
+  .btn-glass {
+    @apply backdrop-blur-md bg-white/10 border border-white/20;
+    @apply hover:bg-white/20 hover:border-white/30;
+    @apply shadow-lg hover:shadow-xl;
+    @apply transition-all duration-300;
+  }
+  
+  .card-silver {
+    @apply bg-gradient-to-br from-gray-50 via-white to-gray-100;
+    @apply shadow-lg hover:shadow-2xl;
+    @apply border border-gray-200;
+    @apply transition-all duration-300;
+  }
+  
+  .card-glass {
+    @apply backdrop-blur-lg bg-white/70 border border-white/30;
+    @apply shadow-xl hover:shadow-2xl;
+    @apply transition-all duration-300;
+  }
+}
+
+/* Animation utilities */
+@layer utilities {
+  .animate-in {
+    animation: animateIn 0.3s ease-out;
+  }
+  
+  .animate-out {
+    animation: animateOut 0.3s ease-in;
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+  }
+  
+  .animate-pulse-soft {
+    animation: pulseSoft 2s ease-in-out infinite;
+  }
+  
+  @keyframes animateIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes animateOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  @keyframes pulseSoft {
+    0%, 100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(1.05);
+    }
+  }
+
+  /* 擴展漸層樣式 */
+  /* 基礎銀色漸層 */
+  .bg-gradient-silver-light {
+    @apply bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300;
+  }
+  
+  .bg-gradient-silver-medium {
+    @apply bg-gradient-to-r from-gray-300 via-gray-400 to-gray-500;
+  }
+  
+  .bg-gradient-silver-dark {
+    @apply bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700;
+  }
+  
+  /* 金屬質感漸層 */
+  .bg-gradient-metal-chrome {
+    background: linear-gradient(135deg, 
+      #c0c0c0 0%, 
+      #e8e8e8 25%, 
+      #d0d0d0 50%, 
+      #f0f0f0 75%, 
+      #c8c8c8 100%
+    );
+  }
+  
+  .bg-gradient-metal-steel {
+    background: linear-gradient(135deg, 
+      #4a5568 0%, 
+      #718096 25%, 
+      #a0aec0 50%, 
+      #cbd5e0 75%, 
+      #e2e8f0 100%
+    );
+  }
+  
+  .bg-gradient-metal-titanium {
+    background: linear-gradient(135deg, 
+      #2d3748 0%, 
+      #4a5568 25%, 
+      #718096 50%, 
+      #a0aec0 75%, 
+      #cbd5e0 100%
+    );
+  }
+  
+  /* 彩虹漸層系列 */
+  .bg-gradient-rainbow {
+    background: linear-gradient(135deg, 
+      #ff6b6b 0%, 
+      #ffd93d 25%, 
+      #6bcf7f 50%, 
+      #4d96ff 75%, 
+      #9c88ff 100%
+    );
+  }
+  
+  .bg-gradient-rainbow-subtle {
+    background: linear-gradient(135deg, 
+      rgba(255, 107, 107, 0.3) 0%, 
+      rgba(255, 217, 61, 0.3) 25%, 
+      rgba(107, 207, 127, 0.3) 50%, 
+      rgba(77, 150, 255, 0.3) 75%, 
+      rgba(156, 136, 255, 0.3) 100%
+    );
+  }
+  
+  /* 冷色調漸層 */
+  .bg-gradient-cool-blue {
+    @apply bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600;
+  }
+  
+  .bg-gradient-cool-cyan {
+    @apply bg-gradient-to-br from-cyan-400 via-cyan-500 to-teal-600;
+  }
+  
+  .bg-gradient-cool-purple {
+    @apply bg-gradient-to-br from-purple-400 via-purple-500 to-indigo-600;
+  }
+  
+  /* 暖色調漸層 */
+  .bg-gradient-warm-orange {
+    @apply bg-gradient-to-br from-orange-400 via-orange-500 to-red-600;
+  }
+  
+  .bg-gradient-warm-pink {
+    @apply bg-gradient-to-br from-pink-400 via-pink-500 to-rose-600;
+  }
+  
+  .bg-gradient-warm-yellow {
+    @apply bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-600;
+  }
+  
+  /* 深色漸層 */
+  .bg-gradient-dark-slate {
+    @apply bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900;
+  }
+  
+  .bg-gradient-dark-zinc {
+    @apply bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-900;
+  }
+  
+  .bg-gradient-dark-stone {
+    @apply bg-gradient-to-br from-stone-700 via-stone-800 to-stone-900;
+  }
+  
+  /* 特殊效果漸層 */
+  .bg-gradient-holographic {
+    background: linear-gradient(135deg, 
+      #667eea 0%, 
+      #764ba2 25%, 
+      #f093fb 50%, 
+      #f5576c 75%, 
+      #4facfe 100%
+    );
+  }
+  
+  .bg-gradient-neon {
+    background: linear-gradient(135deg, 
+      #00f5ff 0%, 
+      #00d4ff 25%, 
+      #0099ff 50%, 
+      #0066ff 75%, 
+      #0033ff 100%
+    );
+  }
+  
+  .bg-gradient-sunset {
+    background: linear-gradient(135deg, 
+      #ff9a9e 0%, 
+      #fecfef 25%, 
+      #fecfef 50%, 
+      #fad0c4 75%, 
+      #fad0c4 100%
+    );
+  }
+  
+  .bg-gradient-forest {
+    background: linear-gradient(135deg, 
+      #134e5e 0%, 
+      #71b280 50%, 
+      #a8e6cf 100%
+    );
+  }
+  
+  .bg-gradient-ocean {
+    background: linear-gradient(135deg, 
+      #667db6 0%, 
+      #0082c8 25%, 
+      #0078cf 50%, 
+      #26d0ce 75%, 
+      #1a2a6c 100%
+    );
+  }
+  
+  /* 文字漸層 */
+  .text-gradient-metal {
+    background: linear-gradient(135deg, #c0c0c0, #e8e8e8, #d0d0d0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-rainbow {
+    @apply bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-fire {
+    @apply bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 bg-clip-text text-transparent;
+  }
+  
+  .text-gradient-ocean {
+    @apply bg-gradient-to-r from-blue-500 via-cyan-500 to-teal-500 bg-clip-text text-transparent;
+  }
+  
+  /* 動畫漸層 */
+  .bg-gradient-animated {
+    background: linear-gradient(45deg, 
+      #667eea 0%, 
+      #764ba2 25%, 
+      #f093fb 50%, 
+      #f5576c 75%, 
+      #4facfe 100%
+    );
+    background-size: 400% 400%;
+    animation: gradientShift 8s ease infinite;
+  }
+  
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  /* 邊框漸層 */
+  .border-gradient-silver {
+    border: 2px solid;
+    border-image: linear-gradient(45deg, #c0c0c0, #e8e8e8, #d0d0d0) 1;
+  }
+  
+  .border-gradient-rainbow {
+    border: 2px solid;
+    border-image: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf7f, #4d96ff, #9c88ff) 1;
+  }
+  
+  /* 陰影漸層 */
+  .shadow-gradient-silver {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 10px 10px -5px rgba(0, 0, 0, 0.04),
+                0 0 20px rgba(192, 192, 192, 0.3);
+  }
+  
+  .shadow-gradient-glow {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1),
+                0 0 40px rgba(255, 255, 255, 0.05),
+                0 0 80px rgba(255, 255, 255, 0.03);
+  }
+  
+  .shadow-gradient-colored {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 10px 10px -5px rgba(0, 0, 0, 0.04),
+                0 0 20px rgba(102, 126, 234, 0.3);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+} 
