@@ -7,7 +7,8 @@ RUN apk add --no-cache libc6-compat
 # Set working directory
 WORKDIR /app
 
-# Set most environment variables early, but keep NODE_ENV as development for build
+# Set ALL environment variables FIRST - before copying any files
+ENV NODE_ENV=development
 ENV PORT=3000
 ENV DATABASE_URL="file:./prod.db"
 ENV JWT_SECRET="drcarcold-super-secret-jwt-key-2024-railway"
@@ -17,19 +18,17 @@ ENV NEXTAUTH_SECRET="drcarcold-nextauth-secret-2024"
 
 # Copy package files first for better caching
 COPY package*.json ./
+
+# Copy prisma schema BEFORE installing (needed for postinstall)
 COPY prisma ./prisma/
 
-# Install ALL dependencies (including dev dependencies for build)
+# Install ALL dependencies (postinstall will run prisma generate automatically)
 RUN npm ci && npm cache clean --force
-
-# Generate Prisma client
-RUN npx prisma generate
 
 # Copy source code
 COPY . .
 
-# Build the application with development NODE_ENV to keep dev dependencies available
-ENV NODE_ENV=development
+# Build the application (with development NODE_ENV to keep all dependencies available)
 RUN npm run build
 
 # Create production database and run migrations
