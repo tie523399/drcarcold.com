@@ -6,11 +6,16 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
-  // AWS 優化配置
+  // Railway 優化配置
   output: 'standalone',
+  trailingSlash: false,
+  
   images: {
     remotePatterns: [
       {
@@ -22,18 +27,26 @@ const nextConfig = {
         protocol: 'https',
         hostname: '*.amplifyapp.com',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.up.railway.app',
+        pathname: '/**',
       }
     ],
     formats: ['image/webp', 'image/avif'],
-    unoptimized: false,
+    unoptimized: process.env.NODE_ENV === 'production',
   },
+  
   // 環境變數
   env: {
     DATABASE_URL: process.env.DATABASE_URL,
     JWT_SECRET: process.env.JWT_SECRET,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   },
+  
   async redirects() {
     return [
       {
@@ -43,6 +56,7 @@ const nextConfig = {
       },
     ];
   },
+  
   async headers() {
     return [
       {

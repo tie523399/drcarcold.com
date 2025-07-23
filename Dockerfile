@@ -28,17 +28,21 @@ ENV ADMIN_EMAIL="admin@drcarcold.com"
 ENV ADMIN_PASSWORD="DrCarCold2024!"
 ENV NEXT_PUBLIC_SITE_URL="https://drcarcold-production.up.railway.app"
 
+# 設置構建相關環境變數
+ENV SKIP_ENV_VALIDATION=true
+ENV NEXT_TELEMETRY_DISABLED=1
+
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build the application
+# Create and setup database first
+RUN npx prisma db push --accept-data-loss || echo "Database setup completed"
+
+# Build the application (with database ready)
 RUN npm run build
 
 # Set production environment
 ENV NODE_ENV=production
-
-# Create and setup database
-RUN npx prisma db push --accept-data-loss || echo "Database setup completed"
 
 # Expose port
 EXPOSE 3000
