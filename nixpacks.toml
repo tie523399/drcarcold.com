@@ -1,18 +1,26 @@
 [phases.setup]
-nixPkgs = ['nodejs-18_x', 'npm-9_x']
+nixPkgs = ['nodejs_18', 'npm']
 
 [phases.install]
 cmds = [
-  'npm ci --omit=dev',
+  'npm ci --include=dev',
   'npx prisma generate'
 ]
 
 [phases.build]
-cmds = ['npm run build']
+cmds = [
+  'npm run build',
+  'npx prisma db push --accept-data-loss || true'
+]
 
 [start]
 cmd = 'npm start'
 
 [variables]
 NODE_ENV = 'production'
-PORT = '3000' 
+PORT = '3000'
+DATABASE_URL = 'file:./prod.db'
+JWT_SECRET = 'drcarcold-super-secret-jwt-key-2024-railway'
+ADMIN_EMAIL = 'admin@drcarcold.com'
+ADMIN_PASSWORD = 'DrCarCold2024!'
+NEXTAUTH_SECRET = 'drcarcold-nextauth-secret-2024' 

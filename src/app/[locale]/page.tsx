@@ -119,26 +119,44 @@ export default function HomePage({ params: { locale } }: { params: { locale: str
         </section>
       )}
       
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
-        <div className="container relative mx-auto px-4 py-24 md:py-32">
+      {/* Hero Section with Video Background */}
+      <section className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white overflow-hidden">
+        {/* Background Video */}
+        <div className="absolute inset-0 w-full h-full">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover opacity-30"
+          >
+            <source src="/images/hero-video.mp4" type="video/mp4" />
+          </video>
+          {/* Video Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/70 via-gray-800/70 to-gray-900/70"></div>
+        </div>
+        
+        {/* Grid Pattern Overlay */}
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-20"></div>
+        
+        {/* Content */}
+        <div className="container relative mx-auto px-4 py-24 md:py-32 z-10">
           <div className="max-w-4xl">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fadeInUp">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fadeInUp drop-shadow-lg">
               {t('home.hero.title')}
             </h1>
-            <p className="text-xl md:text-2xl text-gray-300 mb-8 animate-fadeInUp" style={{ animationDelay: '0.2s' }}>
+            <p className="text-xl md:text-2xl text-gray-200 mb-8 animate-fadeInUp drop-shadow-md" style={{ animationDelay: '0.2s' }}>
               {t('home.hero.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
               <Link href={`/${locale}/products`}>
-                <Button size="lg" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto shadow-xl">
                   {t('home.hero.cta.products')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href={`/${locale}/contact`}>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white/10 hover:bg-white/20">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white/10 hover:bg-white/20 border-white/30 shadow-xl">
                   {t('home.hero.cta.contact')}
                 </Button>
               </Link>
