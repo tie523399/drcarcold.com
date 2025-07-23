@@ -7,8 +7,7 @@ RUN apk add --no-cache libc6-compat
 # Set working directory
 WORKDIR /app
 
-# Set environment variables EARLY - before any build steps
-ENV NODE_ENV=production
+# Set most environment variables early, but keep NODE_ENV as development for build
 ENV PORT=3000
 ENV DATABASE_URL="file:./prod.db"
 ENV JWT_SECRET="drcarcold-super-secret-jwt-key-2024-railway"
@@ -29,13 +28,15 @@ RUN npx prisma generate
 # Copy source code
 COPY . .
 
-# Build the application (now with correct env vars)
+# Build the application with development NODE_ENV to keep dev dependencies available
+ENV NODE_ENV=development
 RUN npm run build
 
 # Create production database and run migrations
 RUN npx prisma db push --accept-data-loss || true
 
-# Remove dev dependencies after build
+# NOW set to production and remove dev dependencies
+ENV NODE_ENV=production
 RUN npm prune --production
 
 # Expose port
