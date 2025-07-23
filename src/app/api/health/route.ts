@@ -1,20 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    return NextResponse.json({
-      status: 'healthy',
+    // 簡單的健康檢查
+    return NextResponse.json({ 
+      status: 'ok', 
       timestamp: new Date().toISOString(),
-      service: 'DrCarCold API',
+      service: 'DrCarCold',
       version: '1.0.0'
-    })
+    });
   } catch (error) {
     return NextResponse.json(
-      { 
-        status: 'unhealthy',
-        error: 'Service unavailable'
-      }, 
+      { status: 'error', message: 'Service unavailable' },
       { status: 500 }
-    )
+    );
   }
 } 
