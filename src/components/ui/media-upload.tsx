@@ -129,12 +129,25 @@ export default function MediaUpload({
       console.log('MediaUpload: 解析結果', result)
 
       if (result.success) {
-        const newMedia = [...media, ...result.media]
+        console.log('MediaUpload: API返回成功', {
+          resultMedia: result.media,
+          resultImages: result.images,
+          currentMedia: media
+        })
+        
+        // 兼容两种数据格式
+        const uploadedFiles = result.media || result.images || []
+        console.log('MediaUpload: 处理的文件', uploadedFiles)
+        
+        const newMedia = [...media, ...uploadedFiles]
+        console.log('MediaUpload: 新的媒体列表', newMedia)
+        
         setMedia(newMedia)
         onUpload?.(newMedia)
         
-        if (result.errors) {
+        if (result.errors && result.errors.length > 0) {
           setErrors(result.errors)
+          console.warn('MediaUpload: 部分上传失败', result.errors)
         }
       } else {
         console.error('MediaUpload: 上傳失敗', result)
@@ -248,8 +261,22 @@ export default function MediaUpload({
               <li key={index}>• {error}</li>
             ))}
           </ul>
+          <div className="mt-3 text-xs text-red-600 bg-red-100 p-2 rounded">
+            <strong>🔍 调试提示:</strong> 请按F12打开浏览器控制台查看详细日志
+          </div>
         </div>
       )}
+
+      {/* 调试信息面板 */}
+      <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded border">
+        <div className="font-medium mb-1">🛠️ 调试信息:</div>
+        <div>环境: {process.env.NODE_ENV || 'development'}</div>
+        <div>接受GIF: {String(acceptGif)}</div>
+        <div>接受视频: {String(acceptVideo)}</div>
+        <div>支持格式: {getAcceptTypes()}</div>
+        <div>当前文件数: {media.length}/{maxFiles}</div>
+        <div>上传中: {String(isUploading)}</div>
+      </div>
 
       {/* 媒體預覽 */}
       {media.length > 0 && (
