@@ -16,12 +16,20 @@ export const ALLOWED_MEDIA_TYPES = {
   video: ['video/mp4', 'video/webm', 'video/ogg'],
 }
 
-// 上傳路徑配置
+// 上傳路徑配置 - Railway 环境适配
 export const UPLOAD_PATHS = {
-  products: 'public/uploads/products',
-  categories: 'public/uploads/categories',
-  news: 'public/uploads/news',
-  banners: 'public/uploads/banners',
+  products: process.env.NODE_ENV === 'production' && process.env.RAILWAY_ENVIRONMENT 
+    ? '/tmp/uploads/products' 
+    : 'public/uploads/products',
+  categories: process.env.NODE_ENV === 'production' && process.env.RAILWAY_ENVIRONMENT 
+    ? '/tmp/uploads/categories' 
+    : 'public/uploads/categories',
+  news: process.env.NODE_ENV === 'production' && process.env.RAILWAY_ENVIRONMENT 
+    ? '/tmp/uploads/news' 
+    : 'public/uploads/news',
+  banners: process.env.NODE_ENV === 'production' && process.env.RAILWAY_ENVIRONMENT 
+    ? '/tmp/uploads/banners' 
+    : 'public/uploads/banners',
 }
 
 // 驗證媒體檔案
@@ -135,8 +143,12 @@ export async function processAndSaveMediaSimple(
     const filePath = join(fullUploadPath, fileName)
     await writeFile(filePath, buffer)
 
-    // 生成公開 URL
-    const publicUrl = `/${uploadPath.replace('public/', '')}/${fileName}`
+    // 生成公開 URL - Railway 环境适配
+    const isRailwayProduction = process.env.NODE_ENV === 'production' && process.env.RAILWAY_ENVIRONMENT
+    const publicUrl = isRailwayProduction 
+      ? `/api/files/${uploadPath.split('/').pop()}/${fileName}`  // Railway: 通过API访问
+      : `/${uploadPath.replace('public/', '')}/${fileName}`     // 本地: 直接访问
+
     let thumbnailUrl = publicUrl
 
     // 為 GIF 和圖片創建縮略圖（暫時使用原檔）
@@ -148,7 +160,9 @@ export async function processAndSaveMediaSimple(
         // 暫時直接複製原檔作為縮略圖
         await writeFile(thumbnailFilePath, buffer)
         
-        thumbnailUrl = `/${uploadPath.replace('public/', '')}/thumbnails/${thumbnailFileName}`
+        thumbnailUrl = isRailwayProduction
+          ? `/api/files/${uploadPath.split('/').pop()}/thumbnails/${thumbnailFileName}`
+          : `/${uploadPath.replace('public/', '')}/thumbnails/${thumbnailFileName}`
       } catch (error) {
         console.error('創建縮略圖失敗:', error)
         // 使用原檔作為縮略圖

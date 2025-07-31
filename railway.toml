@@ -10,6 +10,7 @@ restartPolicyType = "on_failure"
 
 [variables]
 NODE_ENV = "production"
+RAILWAY_ENVIRONMENT = "true"
 DATABASE_URL = "file:./prod.db"
 JWT_SECRET = "drcarcold-super-secret-jwt-key-2024-railway"
 ADMIN_EMAIL = "admin@drcarcold.com"

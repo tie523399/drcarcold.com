@@ -100,7 +100,8 @@ export async function POST(request: NextRequest) {
     // 返回結果
     return NextResponse.json({
       success: true,
-      media: uploadedMedia,
+      images: uploadedMedia,  // 修复：改为 images 以匹配前端期望
+      media: uploadedMedia,   // 保留 media 兼容性
       errors: errors.length > 0 ? errors : undefined,
       message: `成功上傳 ${uploadedMedia.length} 個檔案${errors.length > 0 ? `，${errors.length} 個失敗` : ''}`
     })
