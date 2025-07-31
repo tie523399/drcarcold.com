@@ -160,11 +160,6 @@ export default function BannersPage() {
           <p className="text-gray-600 mt-2">管理網站橫幅圖片、GIF 和影片</p>
         </div>
         <div className="flex gap-2">
-          <Link href="/test-upload">
-            <Button variant="outline">
-              測試上傳
-            </Button>
-          </Link>
         <Link href="/admin/banners/new">
           <Button variant="premium">
             <Plus className="mr-2 h-4 w-4" />
