@@ -127,27 +127,69 @@ export async function processAndSaveMediaSimple(
   mediaType: 'image' | 'gif' | 'video'
 ) {
   try {
-    // 確保上傳目錄存在
-    const fullUploadPath = join(process.cwd(), uploadPath)
-    if (!existsSync(fullUploadPath)) {
-      await mkdir(fullUploadPath, { recursive: true })
+    console.log('🔧 处理媒体文件:', { fileName, uploadPath, mediaType })
+    
+    // Railway环境适配：确保上传目录存在
+    const isRailwayProd = process.env.NODE_ENV === 'production' && process.env.RAILWAY_ENVIRONMENT
+    let fullUploadPath: string
+    
+    if (isRailwayProd) {
+      // Railway环境：使用绝对路径，不依赖process.cwd()
+      fullUploadPath = uploadPath.startsWith('/') ? uploadPath : join('/tmp/uploads', uploadPath.replace(/^.*\/uploads\//, ''))
+    } else {
+      fullUploadPath = join(process.cwd(), uploadPath)
     }
+    
+    console.log('📁 创建目录:', { 
+      uploadPath, 
+      fullUploadPath, 
+      exists: existsSync(fullUploadPath),
+      isRailwayProd,
+      cwd: process.cwd()
+    })
+    
+    try {
+      if (!existsSync(fullUploadPath)) {
+        await mkdir(fullUploadPath, { recursive: true })
+        console.log('✅ 目录创建成功:', fullUploadPath)
+      }
 
-    // 創建縮略圖目錄
-    const thumbnailPath = join(fullUploadPath, 'thumbnails')
-    if (!existsSync(thumbnailPath)) {
-      await mkdir(thumbnailPath, { recursive: true })
+      // 創建縮略圖目錄
+      const thumbnailPath = join(fullUploadPath, 'thumbnails')
+      if (!existsSync(thumbnailPath)) {
+        await mkdir(thumbnailPath, { recursive: true })
+        console.log('✅ 缩略图目录创建成功:', thumbnailPath)
+      }
+    } catch (error) {
+      console.error('❌ 目录创建失败:', error)
+      // Railway环境下如果目录创建失败，尝试直接保存到tmp根目录
+      if (isRailwayProd) {
+        fullUploadPath = '/tmp'
+        console.log('🔄 回退到 /tmp 目录')
+      }
     }
 
     // 保存原始檔案
     const filePath = join(fullUploadPath, fileName)
+    console.log('💾 保存文件到:', filePath)
     await writeFile(filePath, buffer)
+    console.log('✅ 文件保存成功, 大小:', buffer.length, '字节')
+    console.log('🔍 文件存在检查:', existsSync(filePath))
 
     // 生成公開 URL - Railway 环境适配
     const isRailwayProduction = process.env.NODE_ENV === 'production' && process.env.RAILWAY_ENVIRONMENT
-    const publicUrl = isRailwayProduction 
-      ? `/api/files/${uploadPath.split('/').pop()}/${fileName}`  // Railway: 通过API访问
-      : `/${uploadPath.replace('public/', '')}/${fileName}`     // 本地: 直接访问
+    let publicUrl: string
+    
+    if (isRailwayProduction) {
+      // Railway: 通过API访问，提取类型目录名
+      const uploadTypeFromPath = uploadPath.includes('/') ? uploadPath.split('/').pop() : uploadPath.replace(/^.*uploads[\/\\]/, '')
+      publicUrl = `/api/files/${uploadTypeFromPath}/${fileName}`
+      console.log('🌐 Railway URL生成:', { uploadPath, uploadTypeFromPath, publicUrl })
+    } else {
+      // 本地: 直接访问
+      publicUrl = `/${uploadPath.replace('public/', '')}/${fileName}`
+      console.log('🌐 本地 URL生成:', publicUrl)
+    }
 
     let thumbnailUrl = publicUrl
 
@@ -175,11 +217,14 @@ export async function processAndSaveMediaSimple(
       thumbnailUrl = '/images/video-placeholder.svg'
     }
 
-    return {
+    const result = {
       mainFile: publicUrl,
       thumbnail: thumbnailUrl,
       mediaType
     }
+    
+    console.log('🎯 返回结果:', result)
+    return result
   } catch (error) {
     console.error('處理媒體檔案時發生錯誤:', error)
     throw error

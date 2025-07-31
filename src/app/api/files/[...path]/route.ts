@@ -19,18 +19,60 @@ export async function GET(
       )
     }
 
-    // 构建文件路径
+    // 构建文件路径 - 改进的Railway适配
     const isRailwayProduction = process.env.NODE_ENV === 'production' && process.env.RAILWAY_ENVIRONMENT
-    const basePath = isRailwayProduction ? '/tmp/uploads' : 'public/uploads'
-    const filePath = join(basePath, path)
+    let basePath: string
+    let filePath: string
+    
+    if (isRailwayProduction) {
+      // Railway环境：先尝试完整路径，再尝试tmp根目录
+      basePath = '/tmp/uploads'
+      filePath = join(basePath, path)
+      
+      // 如果标准路径不存在，尝试在tmp根目录查找
+      if (!existsSync(filePath)) {
+        const fallbackPath = join('/tmp', path.split('/').pop() || '')
+        console.log('🔄 尝试回退路径:', fallbackPath)
+        if (existsSync(fallbackPath)) {
+          filePath = fallbackPath
+          basePath = '/tmp'
+        }
+      }
+    } else {
+      basePath = 'public/uploads'
+      filePath = join(basePath, path)
+    }
 
-    console.log('文件服务请求:', { path, filePath, exists: existsSync(filePath) })
+    console.log('🔍 文件服务请求:', { 
+      originalPath: path, 
+      constructedPath: filePath, 
+      basePath,
+      isRailwayProduction,
+      exists: existsSync(filePath),
+      env: process.env.NODE_ENV,
+      railwayEnv: process.env.RAILWAY_ENVIRONMENT
+    })
 
-    // 检查文件是否存在
+    // 如果文件不存在，尝试检查目录结构
     if (!existsSync(filePath)) {
-      console.log('文件不存在:', filePath)
+      const directory = join(basePath, path.split('/')[0])
+      console.log('📁 检查目录:', { 
+        directory, 
+        dirExists: existsSync(directory),
+        files: existsSync(directory) ? require('fs').readdirSync(directory).slice(0, 5) : '目录不存在'
+      })
+      
+      console.log('❌ 文件不存在:', filePath)
       return NextResponse.json(
-        { error: '文件不存在' },
+        { 
+          error: '文件不存在',
+          debug: {
+            requestedPath: path,
+            fullPath: filePath,
+            basePath,
+            environment: process.env.NODE_ENV
+          }
+        },
         { status: 404 }
       )
     }
