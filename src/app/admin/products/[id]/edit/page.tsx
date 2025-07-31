@@ -9,7 +9,7 @@ import { productSchema } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import ImageUpload from '@/components/ui/image-upload'
+import MediaUpload from '@/components/ui/media-upload'
 import { ArrowLeft, Save } from 'lucide-react'
 import type { z } from 'zod'
 
@@ -197,11 +197,13 @@ export default function EditProductPage() {
               <label className="block text-sm font-medium mb-2">
                 產品圖片
               </label>
-              <ImageUpload
+              <MediaUpload
                 uploadType="products"
                 maxFiles={8}
                 onUpload={setUploadedImages}
-                initialImages={uploadedImages}
+                initialMedia={uploadedImages}
+                acceptVideo={false}
+                acceptGif={true}
               />
             </div>
 
