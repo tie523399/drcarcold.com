@@ -1,0 +1,12 @@
+# 强制 Railway 忽略任何 Docker 相关文件
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# 忽略构建缓存
+.next/
+node_modules/
+*.log
+
+# 只使用 nixpacks 构建
+# Railway 应该使用 nixpacks.toml 和 railway.toml

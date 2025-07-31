@@ -1,7 +1,14 @@
+[phases.setup]
+nixPkgs = ["nodejs_18"]
+
+[phases.install]
+cmds = ["npm ci"]
+
 [phases.build]
 cmds = [
-  "npm ci",
-  "npm run build:safe"
+  "npx prisma generate",
+  "DATABASE_URL=file:./build.db npx prisma db push || echo 'Build database ready'",
+  "npm run build"
 ]
 
 [phases.start]
