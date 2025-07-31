@@ -13,8 +13,8 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   // Railway 優化配置
-  output: 'standalone',
   trailingSlash: false,
+  poweredByHeader: false,
   
   images: {
     remotePatterns: [
