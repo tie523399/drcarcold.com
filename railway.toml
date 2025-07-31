@@ -1,0 +1,16 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "npm run railway:start"
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "on_failure"
+
+[variables]
+NODE_ENV = "production"
+DATABASE_URL = "file:./prod.db"
+JWT_SECRET = "drcarcold-super-secret-jwt-key-2024-railway"
+ADMIN_EMAIL = "admin@drcarcold.com"
+ADMIN_PASSWORD = "DrCarCold2024!"
+NEXTAUTH_SECRET = "drcarcold-nextauth-secret-2024"

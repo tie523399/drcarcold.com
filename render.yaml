@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: drcarcold
+    env: node
+    plan: free
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:./prod.db
+      - key: JWT_SECRET
+        value: drcarcold-super-secret-jwt-key-2024-render
+      - key: ADMIN_EMAIL
+        value: admin@drcarcold.com
+      - key: ADMIN_PASSWORD
+        value: DrCarCold2024!
+      - key: NEXTAUTH_SECRET
+        value: drcarcold-nextauth-secret-2024
+      - key: NEXT_PUBLIC_SITE_URL
+        from: RENDER_EXTERNAL_URL
+      - key: NEXT_PUBLIC_API_URL
+        from: RENDER_EXTERNAL_URL
