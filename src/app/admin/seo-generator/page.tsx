@@ -145,6 +145,8 @@ export default function SEOGeneratorPage() {
             size="sm"
             onClick={clearMessage}
             className="text-current hover:bg-black/10"
+            aria-label="關閉訊息"
+            title="關閉訊息"
           >
             ✕
           </Button>
@@ -215,14 +217,18 @@ export default function SEOGeneratorPage() {
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">生成數量</label>
+              <label htmlFor="generateCount" className="block text-sm font-medium mb-2">生成數量</label>
               <Input
+                id="generateCount"
                 type="number"
                 min="1"
                 max="10"
                 value={generateCount}
                 onChange={(e) => setGenerateCount(parseInt(e.target.value) || 1)}
                 className="w-24"
+                aria-label="設定生成文章數量，範圍1到10篇"
+                title="設定要生成的SEO文章數量"
+                placeholder="1"
               />
               <p className="text-xs text-gray-500 mt-1">建議 1-3 篇</p>
             </div>
