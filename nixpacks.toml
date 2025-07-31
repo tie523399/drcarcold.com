@@ -1,12 +1,13 @@
 [phases.build]
 cmds = [
   "npm ci",
-  "npx prisma generate",
-  "npm run build"
+  "npm run build:safe"
 ]
 
 [phases.start]
-cmd = "npm run railway:start"
+cmd = "npx prisma db push && npm start"
 
 [variables]
 NODE_ENV = "production"
+DATABASE_URL = "file:./prod.db"
+SKIP_ENV_VALIDATION = "true"

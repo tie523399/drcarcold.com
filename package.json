@@ -13,8 +13,9 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate",
     "railway:deploy": "railway up",
-    "railway:build": "npm run build && npx prisma db push",
-    "railway:start": "npx prisma db push && npm start"
+    "railway:build": "npx prisma generate && npm run build",
+    "railway:start": "npx prisma db push && npm start",
+    "build:safe": "npx prisma generate && DATABASE_URL=file:./build.db npx prisma db push && npm run build"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"

@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "npm run railway:start"
+startCommand = "npx prisma db push && npm start"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
@@ -14,3 +14,4 @@ JWT_SECRET = "drcarcold-super-secret-jwt-key-2024-railway"
 ADMIN_EMAIL = "admin@drcarcold.com"
 ADMIN_PASSWORD = "DrCarCold2024!"
 NEXTAUTH_SECRET = "drcarcold-nextauth-secret-2024"
+SKIP_ENV_VALIDATION = "true"
