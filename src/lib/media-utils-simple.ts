@@ -149,6 +149,18 @@ export async function processAndSaveMediaSimple(
     })
     
     try {
+      // 强制重新创建目录结构 - 解决容器重启问题
+      if (isRailwayProd) {
+        // Railway环境：确保核心目录存在
+        const coreDirectories = ['/tmp/uploads', '/tmp/uploads/products', '/tmp/uploads/categories', '/tmp/uploads/news', '/tmp/uploads/banners']
+        for (const dir of coreDirectories) {
+          if (!existsSync(dir)) {
+            await mkdir(dir, { recursive: true })
+            console.log('🔧 重建目录:', dir)
+          }
+        }
+      }
+      
       if (!existsSync(fullUploadPath)) {
         await mkdir(fullUploadPath, { recursive: true })
         console.log('✅ 目录创建成功:', fullUploadPath)
@@ -166,6 +178,14 @@ export async function processAndSaveMediaSimple(
       if (isRailwayProd) {
         fullUploadPath = '/tmp'
         console.log('🔄 回退到 /tmp 目录')
+        
+        // 确保tmp目录存在
+        try {
+          await mkdir('/tmp', { recursive: true })
+        } catch (tmpError) {
+          console.error('❌ 连 /tmp 目录都创建失败:', tmpError)
+          throw new Error('文件系统不可用')
+        }
       }
     }
 
