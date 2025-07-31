@@ -22,6 +22,7 @@ model Product {
   name          String
   slug          String    @unique
   description   String
+  details       String?   // 商品詳情
   category      Category  @relation(fields: [categoryId], references: [id])
   categoryId    String
   price         Float?

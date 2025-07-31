@@ -10,6 +10,7 @@ export const loginSchema = z.object({
 export const productSchema = z.object({
   name: z.string().min(1, '產品名稱為必填'),
   description: z.string().min(1, '產品描述為必填'),
+  details: z.string().optional(),
   categoryId: z.string().min(1, '請選擇產品類別'),
   price: z.number().min(0, '價格不能為負數').optional(),
   images: z.array(z.string()).default([]),

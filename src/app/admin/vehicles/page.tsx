@@ -230,7 +230,6 @@ export default function VehiclesPage() {
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="bg-blue-50 hover:bg-blue-100 border-blue-200"
           >
             <Upload className="mr-2 h-4 w-4" />
             {isUploading ? '解析中...' : '上傳文件 (PDF/CSV/Excel)'}
@@ -242,7 +241,7 @@ export default function VehiclesPage() {
             </Button>
           </Link>
           <Link href="/admin/vehicles/new">
-            <Button>
+            <Button variant="premium">
               <Plus className="mr-2 h-4 w-4" />
               新增品牌
             </Button>
@@ -321,9 +320,8 @@ export default function VehiclesPage() {
                           </Button>
                         </Link>
                         <Button
-                          variant="outline"
+                          variant="danger"
                           size="sm"
-                          className="text-red-600 hover:text-red-700"
                           onClick={() => setDeleteDialog({
                             open: true,
                             brandId: brand.id,
@@ -465,6 +463,7 @@ export default function VehiclesPage() {
               <Button
                 onClick={handleImportData}
                 disabled={isImporting || uploadResult.data.length === 0}
+                variant="premium"
               >
                 {isImporting ? '導入中...' : `確認導入 ${uploadResult.data.length} 筆數據`}
               </Button>

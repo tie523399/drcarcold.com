@@ -644,7 +644,7 @@ export default function SettingsPage() {
           <Button
             onClick={handleSave}
             disabled={isSaving}
-            className="bg-primary-600 hover:bg-primary-700"
+            variant="premium"
           >
             {isSaving ? (
               <>

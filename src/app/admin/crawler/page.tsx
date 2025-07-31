@@ -275,7 +275,7 @@ export default function CrawlerManagementPage() {
                 
                 <div className="pt-4 border-t">
                   <Link href="/admin/news-sources">
-                    <Button>
+                    <Button variant="premium">
                       <Settings className="mr-2 h-4 w-4" />
                       管理新聞來源
                     </Button>
@@ -314,6 +314,7 @@ export default function CrawlerManagementPage() {
                   <Button
                     onClick={handleTestCrawl}
                     disabled={testLoading}
+                    variant="default"
                   >
                     {testLoading ? (
                       <>

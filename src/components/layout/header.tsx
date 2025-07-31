@@ -26,7 +26,7 @@ export function Header() {
   ]
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b border-gray-200/50 bg-gradient-silver-elegant/95 backdrop-blur supports-[backdrop-filter]:bg-gradient-silver-elegant/60 shadow-silver">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -41,10 +41,10 @@ export function Header() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'text-sm font-medium transition-colors hover:text-primary',
+                  'text-sm font-medium transition-all duration-300 hover:text-gradient-silver hover:scale-105',
                   pathname === item.href
-                    ? 'text-primary'
-                    : 'text-muted-foreground'
+                    ? 'text-gradient-platinum font-semibold'
+                    : 'text-gray-600 hover:text-gray-800'
                 )}
               >
                 {item.label}

@@ -18,8 +18,9 @@ export function Footer() {
   ]
 
   return (
-    <footer className="bg-gray-900 text-gray-300">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="bg-gradient-silver-dark text-gray-300 relative overflow-hidden">
+      <div className="absolute inset-0 bg-silver-pattern opacity-10"></div>
+      <div className="container mx-auto px-4 py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
@@ -31,13 +32,13 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white font-semibold mb-4">{t('footer.quickLinks')}</h3>
+            <h3 className="text-gradient-platinum font-semibold mb-4">{t('footer.quickLinks')}</h3>
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-sm hover:text-white transition-colors"
+                    className="text-sm hover:text-gradient-silver transition-all duration-300 hover:scale-105"
                   >
                     {link.label}
                   </Link>

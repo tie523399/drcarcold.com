@@ -78,7 +78,7 @@ export default function NewsPage() {
           <p className="text-gray-600 mt-2">管理所有新聞文章</p>
         </div>
         <Link href="/admin/news/new">
-          <Button>
+          <Button variant="premium">
             <Plus className="mr-2 h-4 w-4" />
             撰寫文章
           </Button>
@@ -154,9 +154,8 @@ export default function NewsPage() {
                         </Button>
                       </Link>
                       <Button
-                        variant="outline"
+                        variant="danger"
                         size="sm"
-                        className="text-red-600 hover:text-red-700"
                         onClick={() => setDeleteDialog({
                           open: true,
                           newsId: article.id,

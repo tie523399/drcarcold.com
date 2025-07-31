@@ -126,7 +126,7 @@ export default function NewsSourcesPage() {
           <h1 className="text-3xl font-bold text-gray-900">新聞來源管理</h1>
           <p className="text-gray-600 mt-2">管理自動爬取的新聞網站來源</p>
         </div>
-        <Button onClick={handleAdd}>
+        <Button onClick={handleAdd} variant="premium">
           <Plus className="mr-2 h-4 w-4" />
           新增來源
         </Button>

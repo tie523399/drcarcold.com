@@ -231,6 +231,7 @@ export default function SEOGeneratorPage() {
               <Button
                 onClick={handleGenerate}
                 disabled={isGenerating || !stats}
+                variant="premium"
                 className="w-full md:w-auto"
               >
                 {isGenerating ? (

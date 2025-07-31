@@ -153,7 +153,7 @@ export function LatestArticles({ locale }: LatestArticlesProps) {
         {articles.length >= 6 && (
           <div className="text-center mt-12">
             <Link href={`/${locale}/news`}>
-              <Button size="lg" variant="outline">
+              <Button size="lg" variant="secondary">
                 {t('home.news.viewAll')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>

@@ -78,7 +78,7 @@ export default function ProductsPage() {
           <p className="text-gray-600 mt-2">管理所有產品資訊</p>
         </div>
         <Link href="/admin/products/new">
-          <Button>
+          <Button variant="premium">
             <Plus className="mr-2 h-4 w-4" />
             新增產品
           </Button>
@@ -140,9 +140,8 @@ export default function ProductsPage() {
                         </Button>
                       </Link>
                       <Button
-                        variant="outline"
+                        variant="danger"
                         size="sm"
-                        className="text-red-600 hover:text-red-700"
                         onClick={() => setDeleteDialog({
                           open: true,
                           productId: product.id,

@@ -211,19 +211,14 @@ export default function ContactForm({ locale }: ContactFormProps) {
       <Button 
         type="submit" 
         disabled={isSubmitting}
-        className="w-full bg-blue-600 hover:bg-blue-700"
+        variant="default"
+        className="w-full"
+        loading={isSubmitting}
       >
-        {isSubmitting ? (
-          <>
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-            {isZh ? '傳送中...' : 'Sending...'}
-          </>
-        ) : (
-          <>
-            <Send className="h-4 w-4 mr-2" />
-            {isZh ? '立即預約服務' : 'Book Service Now'}
-          </>
-        )}
+        <>
+          <Send className="h-4 w-4 mr-2" />
+          {isSubmitting ? (isZh ? '傳送中...' : 'Sending...') : (isZh ? '立即預約服務' : 'Book Service Now')}
+        </>
       </Button>
 
       {/* 狀態訊息 */}

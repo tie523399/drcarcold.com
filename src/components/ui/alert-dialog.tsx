@@ -1,4 +1,5 @@
-import * as React from 'react'
+import React from 'react'
+import { Button } from '@/components/ui/button'
 
 interface AlertDialogProps {
   open: boolean
@@ -38,22 +39,22 @@ export function AlertDialog({
           <p className="text-sm text-gray-600">{description}</p>
         </div>
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-          <button
-            type="button"
-            className="mt-2 sm:mt-0 inline-flex h-10 items-center justify-center rounded-md px-4 py-2 text-sm font-medium border border-gray-300 bg-white hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          <Button
+            variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
+            className="mt-2 sm:mt-0"
           >
             {cancelText}
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+          </Button>
+          <Button
+            variant="danger"
             onClick={onConfirm}
             disabled={isLoading}
+            loading={isLoading}
           >
             {isLoading ? '處理中...' : confirmText}
-          </button>
+          </Button>
         </div>
       </div>
     </>

@@ -8,6 +8,7 @@ import { useTranslations, useLocale } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { SmartContactButton } from '@/components/ui/smart-contact-button'
 import { ArrowLeft, Package, ShoppingCart, Phone } from 'lucide-react'
 
 interface Product {
@@ -16,6 +17,7 @@ interface Product {
   nameEn?: string
   description: string
   descriptionEn?: string
+  details?: string
   price: number
   stock: number
   categoryId: string
@@ -166,6 +168,16 @@ export default function ProductDetailPage() {
             <div className="prose prose-gray max-w-none">
               <p className="text-gray-600 whitespace-pre-wrap">{productDescription}</p>
             </div>
+
+            {/* 產品詳情 */}
+            {product.details && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-3">{locale === 'zh' ? '產品詳情' : 'Product Details'}</h3>
+                <div className="prose prose-gray max-w-none">
+                  <p className="text-gray-600 whitespace-pre-wrap">{product.details}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 行動按鈕 */}
@@ -184,12 +196,14 @@ export default function ProductDetailPage() {
                   <span>{t('products.contactForOrder')}</span>
                 </div>
 
-                <Link href={`/${locale}/contact`}>
-                  <Button className="w-full" size="lg">
-                    <Phone className="mr-2 h-4 w-4" />
-                    {t('products.contactUs')}
-                  </Button>
-                </Link>
+                <SmartContactButton 
+                  productName={productName}
+                  className="w-full" 
+                  size="lg"
+                  variant="premium"
+                >
+                  {locale === 'zh' ? '聯絡我們' : t('products.contactUs')}
+                </SmartContactButton>
               </div>
             </CardContent>
           </Card>

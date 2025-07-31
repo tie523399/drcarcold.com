@@ -142,21 +142,21 @@ export default function HomePage({ params: { locale } }: { params: { locale: str
         {/* Content */}
         <div className="container relative mx-auto px-4 py-24 md:py-32 z-10">
           <div className="max-w-4xl">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fadeInUp drop-shadow-lg">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 animate-fadeInUp drop-shadow-lg text-gradient-platinum animate-silver-shimmer">
               {t('home.hero.title')}
             </h1>
-            <p className="text-xl md:text-2xl text-gray-200 mb-8 animate-fadeInUp drop-shadow-md" style={{ animationDelay: '0.2s' }}>
+            <p className="text-xl md:text-2xl text-white/90 mb-8 animate-fadeInUp drop-shadow-md" style={{ animationDelay: '0.2s' }}>
               {t('home.hero.subtitle')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 animate-fadeInUp" style={{ animationDelay: '0.4s' }}>
               <Link href={`/${locale}/products`}>
-                <Button size="lg" className="w-full sm:w-auto shadow-xl">
+                <Button size="lg" variant="default" className="w-full sm:w-auto">
                   {t('home.hero.cta.products')}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </Link>
               <Link href={`/${locale}/contact`}>
-                <Button size="lg" variant="outline" className="w-full sm:w-auto bg-white/10 hover:bg-white/20 border-white/30 shadow-xl">
+                <Button size="lg" variant="glass" className="w-full sm:w-auto">
                   {t('home.hero.cta.contact')}
                 </Button>
               </Link>
@@ -169,11 +169,12 @@ export default function HomePage({ params: { locale } }: { params: { locale: str
       <LatestArticles locale={locale} />
 
       {/* Features Section */}
-      <section className="py-16 md:py-24 bg-gray-50">
-        <div className="container mx-auto px-4">
+      <section className="py-16 md:py-24 bg-gradient-silver-light relative">
+        <div className="absolute inset-0 bg-silver-pattern opacity-20"></div>
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('home.why.title')}</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gradient-silver">{t('home.why.title')}</h2>
+            <p className="text-lg text-gray-700 max-w-2xl mx-auto">
               {t('home.why.subtitle')}
             </p>
           </div>
@@ -182,10 +183,10 @@ export default function HomePage({ params: { locale } }: { params: { locale: str
             {features.map((feature) => {
               const Icon = feature.icon
               return (
-                <Card key={feature.title} className="hover:shadow-lg transition-shadow">
+                <Card key={feature.title} className="hover:shadow-silver-glow transition-all duration-300">
                   <CardHeader>
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                      <Icon className="w-6 h-6 text-primary" />
+                    <div className="w-12 h-12 bg-gradient-metal-platinum rounded-lg flex items-center justify-center mb-4 shadow-silver">
+                      <Icon className="w-6 h-6 text-gray-600" />
                     </div>
                     <CardTitle>{feature.title}</CardTitle>
                   </CardHeader>
@@ -231,14 +232,15 @@ export default function HomePage({ params: { locale } }: { params: { locale: str
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 md:py-24 bg-primary text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('home.cta.title')}</h2>
-          <p className="text-lg mb-8 max-w-2xl mx-auto opacity-90">
+      <section className="py-16 md:py-24 bg-gradient-metal-chrome relative overflow-hidden">
+        <div className="absolute inset-0 bg-silver-pattern opacity-30"></div>
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gradient-platinum">{t('home.cta.title')}</h2>
+          <p className="text-lg mb-8 max-w-2xl mx-auto text-gray-700">
             {t('home.cta.subtitle')}
           </p>
           <Link href={`/${locale}/contact`}>
-            <Button size="lg" variant="secondary">
+            <Button size="lg" variant="premium" className="animate-metal-glow">
               {t('home.cta.button')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>

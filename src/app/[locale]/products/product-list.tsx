@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SmartContactButton } from '@/components/ui/smart-contact-button'
 import { useTranslations, useLocale } from 'next-intl'
 import { Search, Package, ShoppingCart, DollarSign } from 'lucide-react'
 import Script from 'next/script'
@@ -162,7 +163,6 @@ export default function ProductList() {
                   key={category.id}
                   variant={selectedCategory === category.slug || selectedCategory === category.id ? 'default' : 'outline'}
                   onClick={() => setSelectedCategory(category.slug || category.id)}
-                  className={selectedCategory === category.slug || selectedCategory === category.id ? 'btn-silver' : 'btn-glass'}
                 >
                   {category.name}
                 </Button>
@@ -232,11 +232,14 @@ export default function ProductList() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex gap-2">
-                  <Button className="flex-1 btn-silver">
-                    <ShoppingCart className="h-4 w-4 mr-2" />
+                  <SmartContactButton 
+                    productName={product.name[locale]}
+                    className="flex-1"
+                    variant="premium"
+                  >
                     {locale === 'zh' ? '詢價' : t('products.inquiry')}
-                  </Button>
-                  <Button variant="outline" className="btn-glass">
+                  </SmartContactButton>
+                  <Button variant="outline">
                     {locale === 'zh' ? '詳細' : t('products.details')}
                   </Button>
                 </CardFooter>

@@ -64,3 +64,40 @@ Thumbs.db
 # 暫存檔
 *.tmp
 *.temp
+
+# 大文件和压缩包
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# 部署相关文件 (只保留Railway)
+aws-*.ps1
+aws-*.sh
+deploy-*.ps1
+*-deploy.sh
+*-deploy.ps1
+Dockerfile*
+!railway.toml
+!nixpacks.toml
+Procfile
+amplify.yml
+ecosystem.config.js
+render.yaml
+*.deploy.md
+*-DEPLOY.md
+
+# 打包脚本
+create_zip.*
+smart_zip.*
+打包說明.md
+實施總結.md
+
+# 构建输出
+build.log
+*.buildinfo
+
+# Cursor 相关
+.cursor/settings.json
+.cursor/extensions.json

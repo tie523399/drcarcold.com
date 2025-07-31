@@ -332,6 +332,7 @@ export default function EditNewsPage() {
           <Button
             type="submit"
             disabled={isLoading}
+            variant="premium"
             className="flex-1"
           >
             <Save className="mr-2 h-4 w-4" />

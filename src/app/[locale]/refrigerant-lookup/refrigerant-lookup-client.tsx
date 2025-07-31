@@ -163,6 +163,7 @@ export default function RefrigerantLookupClient() {
               <Button 
                 onClick={handleSearch}
                 disabled={isLoading}
+                variant="premium"
                 className="w-full"
               >
                 {isLoading ? (

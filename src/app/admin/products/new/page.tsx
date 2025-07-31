@@ -147,6 +147,25 @@ export default function NewProductPage() {
               )}
             </div>
 
+            {/* 產品詳情 */}
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                產品詳情
+              </label>
+              <textarea
+                {...register('details')}
+                rows={6}
+                className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="請輸入詳細的產品資訊，如使用方法、技術規格、注意事項等..."
+              />
+              <p className="mt-1 text-sm text-gray-500">
+                可包含使用方法、技術規格、注意事項、適用車型等詳細資訊
+              </p>
+              {errors.details && (
+                <p className="mt-1 text-sm text-red-600">{errors.details.message}</p>
+              )}
+            </div>
+
             {/* 產品圖片 */}
             <div>
               <label className="block text-sm font-medium mb-2">

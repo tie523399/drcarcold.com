@@ -71,6 +71,7 @@
     "features": "Features:",
     "inquiry": "Inquiry",
     "details": "Details",
+    "productDetails": "Product Details",
     "inStock": "In Stock",
     "outOfStock": "Out of Stock",
     "contactForPrice": "Contact for Price",
@@ -79,7 +80,9 @@
     "wholesale": "Wholesale only, please inquire",
     "contactForOrder": "Please contact us for ordering",
     "contactUs": "Contact Us",
-    "productId": "Product ID"
+    "productId": "Product ID",
+    "callNow": "Call Now",
+    "emailUs": "Email Us"
   },
   "lookup": {
     "title": "Automotive Refrigerant Lookup System",

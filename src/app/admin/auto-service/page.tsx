@@ -163,7 +163,7 @@ export default function AutoServicePage() {
       <div className="p-8">
         <div className="text-center">
           <p className="text-red-500">無法載入服務狀態</p>
-          <Button onClick={fetchStatus} className="mt-4">重新載入</Button>
+          <Button onClick={fetchStatus} variant="default" className="mt-4">重新載入</Button>
         </div>
       </div>
     )

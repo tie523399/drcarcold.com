@@ -399,21 +399,21 @@ export default async function ContactPage({ params: { locale } }: { params: { lo
         <div className="flex flex-wrap justify-center gap-4 mb-8">
           <a 
             href="tel:+886-2-xxxx-xxxx"
-            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+            className="bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:via-emerald-600 hover:to-emerald-700 text-white px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2"
           >
             <Phone className="h-5 w-5" />
             {isZh ? '立即撥打' : 'Call Now'}
           </a>
           <a 
             href="https://line.me/ti/p/@drcarcold"
-            className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+            className="bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:from-green-500 hover:via-green-600 hover:to-green-700 text-white px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2"
           >
             <MessageSquare className="h-5 w-5" />
             {isZh ? 'Line 諮詢' : 'Line Chat'}
           </a>
           <a 
             href="#contact-form"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-gradient-to-r from-gray-400 via-gray-500 to-gray-600 hover:from-gray-500 hover:via-gray-600 hover:to-gray-700 text-white px-6 py-3 rounded-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
           >
             {isZh ? '線上預約' : 'Book Online'}
           </a>

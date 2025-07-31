@@ -171,7 +171,7 @@ export default function VehicleModelsPage({
           </h1>
           <p className="text-gray-600 mt-2">管理 {brand.name} 品牌的車型資料</p>
         </div>
-        <Button onClick={() => setShowAddForm(!showAddForm)}>
+        <Button onClick={() => setShowAddForm(!showAddForm)} variant="premium">
           <Plus className="mr-2 h-4 w-4" />
           {showAddForm ? '取消新增' : '新增車型'}
         </Button>

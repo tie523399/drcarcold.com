@@ -166,7 +166,7 @@ export default function BannersPage() {
             </Button>
           </Link>
         <Link href="/admin/banners/new">
-          <Button>
+          <Button variant="premium">
             <Plus className="mr-2 h-4 w-4" />
             新增橫幅
           </Button>
@@ -263,9 +263,8 @@ export default function BannersPage() {
                         </Button>
                       </Link>
                       <Button
-                        variant="outline"
+                        variant="danger"
                         size="sm"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                         title="刪除橫幅"
                         onClick={() => setDeleteDialog({
                           open: true,
@@ -289,7 +288,7 @@ export default function BannersPage() {
                 開始建立您的第一個橫幅，支援圖片、GIF 動畫和影片
               </p>
               <Link href="/admin/banners/new">
-                <Button>
+                <Button variant="premium">
                   <Plus className="mr-2 h-4 w-4" />
                   新增第一個橫幅
                 </Button>

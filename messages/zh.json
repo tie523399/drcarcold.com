@@ -71,6 +71,7 @@
     "features": "特色：",
     "inquiry": "詢價",
     "details": "詳細資訊",
+    "productDetails": "產品詳情",
     "inStock": "有庫存",
     "outOfStock": "無庫存",
     "contactForPrice": "請洽詢價格",
@@ -79,7 +80,9 @@
     "wholesale": "批發銷售，歡迎詢價",
     "contactForOrder": "請聯絡我們洽詢訂購",
     "contactUs": "聯絡我們",
-    "productId": "產品編號"
+    "productId": "產品編號",
+    "callNow": "立即來電",
+    "emailUs": "聯絡我們"
   },
   "lookup": {
     "title": "汽車冷媒填充查詢系統",

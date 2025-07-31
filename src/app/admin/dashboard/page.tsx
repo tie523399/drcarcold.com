@@ -335,7 +335,7 @@ export default function AdminDashboard() {
 
             <div className="pt-4 border-t">
               <Link href="/admin/auto-service">
-                <Button className="w-full">
+                <Button variant="premium" className="w-full">
                   <Settings className="mr-2 h-4 w-4" />
                   自動化服務管理
                 </Button>
