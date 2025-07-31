@@ -315,7 +315,7 @@ export default function VehiclesPage() {
                           </Button>
                         </Link>
                         <Link href={`/admin/vehicles/${brand.id}/edit`}>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" title="編輯品牌" aria-label="編輯品牌">
                             <Edit className="h-4 w-4" />
                           </Button>
                         </Link>
@@ -327,6 +327,8 @@ export default function VehiclesPage() {
                             brandId: brand.id,
                             brandName: brand.name,
                           })}
+                          title="刪除品牌"
+                          aria-label="刪除品牌"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

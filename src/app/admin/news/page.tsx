@@ -149,7 +149,7 @@ export default function NewsPage() {
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link href={`/admin/news/${article.id}/edit`}>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" title="編輯文章" aria-label="編輯文章">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -161,6 +161,8 @@ export default function NewsPage() {
                           newsId: article.id,
                           newsTitle: article.title,
                         })}
+                        title="刪除文章"
+                        aria-label="刪除文章"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

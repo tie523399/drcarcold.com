@@ -150,7 +150,7 @@ export default function CategoriesPage() {
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link href={`/admin/categories/${category.id}/edit`}>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" title="編輯分類" aria-label="編輯分類">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -164,6 +164,8 @@ export default function CategoriesPage() {
                           categoryName: category.name,
                         })}
                         disabled={!!(category._count?.products && category._count.products > 0)}
+                        title="刪除分類"
+                        aria-label="刪除分類"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

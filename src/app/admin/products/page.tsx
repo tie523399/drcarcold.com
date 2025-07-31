@@ -135,7 +135,7 @@ export default function ProductsPage() {
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Link href={`/admin/products/${product.id}/edit`}>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" title="編輯產品" aria-label="編輯產品">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
@@ -147,6 +147,8 @@ export default function ProductsPage() {
                           productId: product.id,
                           productName: product.name,
                         })}
+                        title="刪除產品"
+                        aria-label="刪除產品"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
