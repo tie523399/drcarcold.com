@@ -319,41 +319,16 @@ async function importVehiclesToDatabase(vehicles: VehicleData[]) {
   }
 }
 
-// 📋 獲取CSV範本
+// 📋 獲取CSV範本 - 極簡版本
 export async function GET() {
-  try {
-    console.log('GET /api/vehicle-file-upload called')
-    
-    // 簡化的CSV範本（避免特殊字符問題）
-    const template = [
-      'brand,brandEn,model,modelEn,year,engineSize,refrigerantType,fillAmount,oilType,oilAmount,notes',
-      'Toyota,Toyota,Camry,Camry,2020,2.0L,R1234yf,650g,PAG46,120ml,',
-      'Honda,Honda,Civic,Civic,2019,1.5L,R134a,475g,PAG46,100ml,',
-      'BMW,BMW,320i,320i,2021,2.0L,R1234yf,750g,PAG100,180ml,Turbo',
-      'Mercedes-Benz,Mercedes-Benz,C-Class,C-Class,2022,2.0L,R1234yf,800g,PAG100,200ml,',
-      'Audi,Audi,A4,A4,2020,2.0L,R1234yf,720g,PAG100,160ml,',
-      'Nissan,Nissan,Altima,Altima,2019,2.5L,R134a,525g,PAG46,110ml,',
-      'Mazda,Mazda,CX-5,CX-5,2021,2.5L,R1234yf,680g,PAG46,140ml,SUV',
-      'Volkswagen,Volkswagen,Golf,Golf,2020,1.4L,R1234yf,450g,PAG46,90ml,Turbo'
-    ].join('\n')
-    
-    return new NextResponse(template, {
-      headers: {
-        'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': 'attachment; filename="refrigerant_template.csv"',
-        'Cache-Control': 'no-cache'
-      }
-    })
-  } catch (error) {
-    console.error('GET /api/vehicle-file-upload error:', error)
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: 'Template generation failed', 
-        details: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
-    )
-  }
+  // 最簡單的實現
+  return NextResponse.json({
+    success: true,
+    message: 'CSV Template API is working',
+    template_url: '/api/vehicle-file-upload/template',
+    sample_data: {
+      headers: ['brand', 'model', 'year', 'refrigerantType', 'fillAmount'],
+      example: ['Toyota', 'Camry', '2020', 'R1234yf', '650g']
+    }
+  })
 } 
