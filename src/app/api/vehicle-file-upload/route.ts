@@ -4,10 +4,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { FileParser, VehicleData } from '@/lib/file-parsers'
-import { prisma } from '@/lib/prisma'
+// Temporarily commenting out problematic imports for debugging
+// import { FileParser, VehicleData } from '@/lib/file-parsers'
+// import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
+
+// Temporary interface for debugging
+interface VehicleData {
+  brand: string
+  model: string
+}
 
 export async function POST(request: NextRequest) {
   console.log('POST /api/vehicle-file-upload 被調用')
@@ -59,43 +66,18 @@ export async function POST(request: NextRequest) {
     
     console.log(`📄 開始解析檔案: ${file.name} (${file.size} bytes)`)
     
-    // 測試FileParser導入
-    try {
-      console.log('檢查FileParser...')
-      if (!FileParser || typeof FileParser.parseVehicleFile !== 'function') {
-        throw new Error('FileParser未正確導入或parseVehicleFile方法不存在')
-      }
-      console.log('FileParser正常')
-    } catch (parserError) {
-      console.error('FileParser問題:', parserError)
-      return NextResponse.json({
-        success: false,
-        error: 'FileParser初始化失敗',
-        details: parserError instanceof Error ? parserError.message : '未知錯誤'
-      }, { status: 500 })
-    }
-    
-    // 解析檔案
-    console.log('開始文件解析...')
-    const parseResult = await FileParser.parseVehicleFile(file, file.name)
-    console.log('解析結果:', { success: parseResult.success, dataLength: parseResult.data?.length })
-    
-    if (!parseResult.success) {
-      return NextResponse.json({
-        success: false,
-        error: '檔案解析失敗',
-        details: parseResult.errors
-      }, { status: 400 })
-    }
-    
-    console.log(`✅ 解析成功: ${parseResult.data.length} 筆車輛數據`)
+    // 暫時跳過檔案解析，只做基本驗證
+    console.log('檔案基本資訊驗證完成')
     
     return NextResponse.json({
       success: true,
-      message: `成功解析 ${parseResult.data.length} 筆車輛數據`,
-      data: parseResult.data,
-      summary: parseResult.summary,
-      errors: parseResult.errors.length > 0 ? parseResult.errors : undefined
+      message: '檔案上傳API正常 (debug mode)',
+      file_info: {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      },
+      note: 'FileParser temporarily disabled for debugging'
     })
     
   } catch (error) {
