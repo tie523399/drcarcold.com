@@ -34,23 +34,15 @@ yarn-error.log*
 next-env.d.ts
 
 # Prisma
-/prisma/dev.db
-/prisma/dev.db-journal
+
 
 # 上傳的檔案
-/public/uploads/banners/*
-/public/uploads/products/*
-/public/uploads/news/*
-/public/uploads/categories/*
-/public/uploads/test/*
-!/public/uploads/**/README.md
 
 # IDE
 .vscode/
 .idea/
 
 # OS
-Thumbs.db
 
 # Railway
 .railway/
