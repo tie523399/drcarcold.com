@@ -25,11 +25,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const validatedData = newsSchema.parse(body)
     
-    // 生成 slug
-    const slug = validatedData.title
-      .toLowerCase()
-      .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
-      .replace(/^-+|-+$/g, '')
+    // 生成 slug - 如果沒有提供slug或為空，則根據title生成
+    const slug = validatedData.slug && validatedData.slug.trim() !== '' 
+      ? validatedData.slug 
+      : validatedData.title
+          .toLowerCase()
+          .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
+          .replace(/^-+|-+$/g, '')
     
     const news = await prisma.news.create({
       data: {
