@@ -17,7 +17,13 @@ export async function GET(request: NextRequest) {
       ]
     })
     
-    return NextResponse.json(banners)
+    const response = NextResponse.json(banners)
+    
+    // 設置緩存頭 - 橫幅可能更頻繁更新，緩存2分鐘
+    response.headers.set('Cache-Control', 'public, max-age=120, s-maxage=120')
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    
+    return response
   } catch (error) {
     console.error('Error fetching banners:', error)
     return NextResponse.json(

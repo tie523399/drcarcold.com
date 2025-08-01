@@ -5,11 +5,42 @@ import { newsSchema } from '@/lib/validations'
 // GET /api/news
 export async function GET(request: NextRequest) {
   try {
-    const news = await prisma.news.findMany({
-      orderBy: { createdAt: 'desc' },
-    })
+    const { searchParams } = new URL(request.url)
+    const limit = searchParams.get('limit')
+    const published = searchParams.get('published')
     
-    return NextResponse.json(news)
+    // 構建查詢條件
+    const where: any = {}
+    if (published === 'true') {
+      where.isPublished = true
+      where.publishedAt = {
+        lte: new Date()
+      }
+    }
+    
+    // 構建查詢選項
+    const queryOptions: any = {
+      where,
+      orderBy: { publishedAt: 'desc' },
+    }
+    
+    // 添加限制條件
+    if (limit) {
+      const limitNum = parseInt(limit, 10)
+      if (!isNaN(limitNum) && limitNum > 0) {
+        queryOptions.take = limitNum
+      }
+    }
+    
+    const news = await prisma.news.findMany(queryOptions)
+    
+    const response = NextResponse.json(news)
+    
+    // 設置緩存頭 - 新聞內容經常更新，緩存1分鐘
+    response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60')
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    
+    return response
   } catch (error) {
     console.error('Error fetching news:', error)
     return NextResponse.json(

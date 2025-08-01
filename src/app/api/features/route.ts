@@ -18,7 +18,13 @@ export async function GET(request: NextRequest) {
       ]
     })
     
-    return NextResponse.json(features)
+    const response = NextResponse.json(features)
+    
+    // 設置緩存頭 - 功能特點相對穩定，可緩存5分鐘
+    response.headers.set('Cache-Control', 'public, max-age=300, s-maxage=300')
+    response.headers.set('X-Content-Type-Options', 'nosniff')
+    
+    return response
   } catch (error) {
     console.error('Error fetching features:', error)
     return NextResponse.json(
