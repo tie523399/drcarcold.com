@@ -154,6 +154,8 @@ export default function ImageCarousel({
             size="sm"
             className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={goToPrevious}
+            aria-label="前一張圖片"
+            title="前一張圖片"
           >
             <ChevronLeft className="w-6 h-6" />
           </Button>
@@ -163,6 +165,8 @@ export default function ImageCarousel({
             size="sm"
             className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/20 hover:bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity"
             onClick={goToNext}
+            aria-label="下一張圖片"
+            title="下一張圖片"
           >
             <ChevronRight className="w-6 h-6" />
           </Button>

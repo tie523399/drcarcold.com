@@ -107,6 +107,8 @@ export function MediaCarousel({
               size="sm"
               className="absolute left-2 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100 w-8 h-8 p-0"
               onClick={goToPrevious}
+              aria-label="前一個媒體"
+              title="前一個媒體"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -116,6 +118,8 @@ export function MediaCarousel({
               size="sm"
               className="absolute right-2 top-1/2 -translate-y-1/2 opacity-80 hover:opacity-100 w-8 h-8 p-0"
               onClick={goToNext}
+              aria-label="下一個媒體"
+              title="下一個媒體"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -129,6 +133,8 @@ export function MediaCarousel({
             size="sm"
             className="absolute bottom-2 right-2 opacity-80 hover:opacity-100 w-8 h-8 p-0"
             onClick={() => setIsPlaying(!isPlaying)}
+            aria-label={isPlaying ? "暫停播放" : "開始播放"}
+            title={isPlaying ? "暫停播放" : "開始播放"}
           >
             {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>

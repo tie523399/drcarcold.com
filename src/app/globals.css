@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @import '../styles/animations.css';
+@import '../styles/browser-compatibility.css';
 
 @layer base {
   :root {
