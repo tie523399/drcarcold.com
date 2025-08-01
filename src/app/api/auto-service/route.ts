@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       const publishedArticles = articleStats.find(stat => stat.isPublished)?._count.id || 0
       const draftArticles = articleStats.find(stat => !stat.isPublished)?._count.id || 0
 
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
         data: {
           ...status,
@@ -35,6 +35,12 @@ export async function GET(request: NextRequest) {
           }
         }
       })
+      
+      // 設置緩存頭 - 服務狀態變化頻繁，緩存30秒
+      response.headers.set('Cache-Control', 'public, max-age=30, s-maxage=30')
+      response.headers.set('X-Content-Type-Options', 'nosniff')
+      
+      return response
     }
 
     return NextResponse.json({
