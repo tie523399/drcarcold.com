@@ -48,13 +48,31 @@ const nextConfig = {
   },
   
   async redirects() {
-    return [
+    const redirects = [
       {
         source: '/refrigerants',
         destination: '/refrigerant-lookup',
         permanent: true,
       },
     ];
+
+    // 強制HTTPS重定向 (僅在生產環境且使用自定義域名時)
+    if (process.env.NODE_ENV === 'production' && process.env.RAILWAY_PUBLIC_DOMAIN) {
+      redirects.push({
+        source: '/(.*)',
+        has: [
+          {
+            type: 'header',
+            key: 'x-forwarded-proto',
+            value: 'http',
+          },
+        ],
+        destination: 'https://' + process.env.RAILWAY_PUBLIC_DOMAIN + '/:path*',
+        permanent: true,
+      });
+    }
+
+    return redirects;
   },
   
   async headers() {
