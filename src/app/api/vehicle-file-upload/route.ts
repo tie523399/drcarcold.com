@@ -10,11 +10,18 @@ import { prisma } from '@/lib/prisma'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
+  console.log('POST /api/vehicle-file-upload 被調用')
+  
   try {
+    // 測試FormData解析
+    console.log('解析FormData...')
     const formData = await request.formData()
     const file = formData.get('file') as File
     
+    console.log('檔案檢查:', { hasFile: !!file, fileName: file?.name, fileSize: file?.size })
+    
     if (!file) {
+      console.log('無檔案，返回400')
       return NextResponse.json(
         { success: false, error: '請選擇要上傳的檔案' },
         { status: 400 }
@@ -31,7 +38,10 @@ export async function POST(request: NextRequest) {
     ]
     const allowedExtensions = /\.(pdf|csv|xlsx|xls)$/i
     
+    console.log('檔案類型檢查:', { fileType: file.type, fileName: file.name })
+    
     if (!allowedTypes.includes(file.type) && !allowedExtensions.test(file.name)) {
+      console.log('檔案類型不支援')
       return NextResponse.json(
         { success: false, error: '只支援PDF、CSV和Excel檔案格式 (.pdf, .csv, .xlsx, .xls)' },
         { status: 400 }
@@ -40,6 +50,7 @@ export async function POST(request: NextRequest) {
     
     // 檢查檔案大小 (最大10MB)
     if (file.size > 10 * 1024 * 1024) {
+      console.log('檔案過大')
       return NextResponse.json(
         { success: false, error: '檔案大小不能超過10MB' },
         { status: 400 }
@@ -48,8 +59,26 @@ export async function POST(request: NextRequest) {
     
     console.log(`📄 開始解析檔案: ${file.name} (${file.size} bytes)`)
     
+    // 測試FileParser導入
+    try {
+      console.log('檢查FileParser...')
+      if (!FileParser || typeof FileParser.parseVehicleFile !== 'function') {
+        throw new Error('FileParser未正確導入或parseVehicleFile方法不存在')
+      }
+      console.log('FileParser正常')
+    } catch (parserError) {
+      console.error('FileParser問題:', parserError)
+      return NextResponse.json({
+        success: false,
+        error: 'FileParser初始化失敗',
+        details: parserError instanceof Error ? parserError.message : '未知錯誤'
+      }, { status: 500 })
+    }
+    
     // 解析檔案
+    console.log('開始文件解析...')
     const parseResult = await FileParser.parseVehicleFile(file, file.name)
+    console.log('解析結果:', { success: parseResult.success, dataLength: parseResult.data?.length })
     
     if (!parseResult.success) {
       return NextResponse.json({
@@ -75,7 +104,8 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         error: '檔案處理時發生錯誤',
-        details: error instanceof Error ? error.message : '未知錯誤'
+        details: error instanceof Error ? error.message : '未知錯誤',
+        stack: error instanceof Error ? error.stack : undefined
       },
       { status: 500 }
     )
@@ -292,6 +322,9 @@ async function importVehiclesToDatabase(vehicles: VehicleData[]) {
 // 📋 獲取CSV範本
 export async function GET() {
   try {
+    // 測試基本功能
+    console.log('GET /api/vehicle-file-upload 被調用')
+    
     const template = `品牌,品牌英文,型號,型號英文,年份,引擎排氣量,冷媒類型,充填量,冷凍油類型,冷凍油量,備註
 Toyota,Toyota,Camry,Camry,2020,2.0L,R1234yf,650g,PAG46,120ml,
 Honda,Honda,Civic,Civic,2019,1.5L,R134a,475g,PAG46,100ml,
@@ -311,8 +344,9 @@ Kia,Kia,Forte,Forte,2020,2.0L,R134a,480g,PAG46,100ml,`
       }
     })
   } catch (error) {
+    console.error('GET /api/vehicle-file-upload 錯誤:', error)
     return NextResponse.json(
-      { success: false, error: '範本生成失敗' },
+      { success: false, error: '範本生成失敗', details: error instanceof Error ? error.message : '未知錯誤' },
       { status: 500 }
     )
   }
