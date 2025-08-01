@@ -76,9 +76,15 @@ export async function POST
       }, { status: 500 })
     }
 
+    // 將File對象轉換為Buffer以確保兼容性
+    console.log('轉換檔案格式...')
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    console.log('檔案轉換完成，大小:', buffer.length)
+
     // 解析檔案
     console.log('開始文件解析...')
-    const parseResult = await FileParser.parseVehicleFile(file, file.name)
+    const parseResult = await FileParser.parseVehicleFile(buffer, file.name)
     console.log('解析結果:', { success: parseResult.success, dataLength: parseResult.data?.length })
 
     if (!parseResult.success) {

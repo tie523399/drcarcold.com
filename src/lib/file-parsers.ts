@@ -731,8 +731,8 @@ export class CSVParser {
 
 // 🎯 通用文件解析器
 export class FileParser {
-  static async parseVehicleFile(file: File | Buffer, filename: string): Promise<ParseResult> {
-    const buffer = file instanceof File ? Buffer.from(await file.arrayBuffer()) : file
+  static async parseVehicleFile(file: Buffer, filename: string): Promise<ParseResult> {
+    const buffer = file
     const extension = filename.toLowerCase().split('.').pop()
     
     switch (extension) {

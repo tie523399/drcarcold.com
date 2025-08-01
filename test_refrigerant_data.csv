@@ -1,0 +1,4 @@
+brand,brandEn,model,modelEn,year,engineSize,refrigerantType,fillAmount,oilType,oilAmount,notes
+Toyota,Toyota,Camry,Camry,2020,2.0L,R1234yf,650g,PAG46,120ml,Test data
+Honda,Honda,Civic,Civic,2019,1.5L,R134a,475g,PAG46,100ml,Test data
+BMW,BMW,320i,320i,2021,2.0L,R1234yf,750g,PAG100,180ml,Turbo engine
