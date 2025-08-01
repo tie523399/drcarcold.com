@@ -4,19 +4,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-// Temporarily commenting out problematic imports for debugging
-// import { FileParser, VehicleData } from '@/lib/file-parsers'
-// import { prisma } from '@/lib/prisma'
+import { FileParser, VehicleData } from '@/lib/file-parsers'
+import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
-// Temporary interface for debugging
-interface VehicleData {
-  brand: string
-  model: string
-}
-
-export async function POST(request: NextRequest) {
+export async function POST
+(request: NextRequest) {
   console.log('POST /api/vehicle-file-upload 被調用')
   
   try {
@@ -66,18 +60,42 @@ export async function POST(request: NextRequest) {
     
     console.log(`📄 開始解析檔案: ${file.name} (${file.size} bytes)`)
     
-    // 暫時跳過檔案解析，只做基本驗證
-    console.log('檔案基本資訊驗證完成')
-    
+    // 檢查FileParser是否正常
+    try {
+      console.log('檢查FileParser...')
+      if (!FileParser || typeof FileParser.parseVehicleFile !== 'function') {
+        throw new Error('FileParser未正確導入或parseVehicleFile方法不存在')
+      }
+      console.log('FileParser正常')
+    } catch (parserError) {
+      console.error('FileParser檢查失敗:', parserError)
+      return NextResponse.json({
+        success: false,
+        error: 'FileParser初始化失敗',
+        details: parserError instanceof Error ? parserError.message : '未知錯誤'
+      }, { status: 500 })
+    }
+
+    // 解析檔案
+    console.log('開始文件解析...')
+    const parseResult = await FileParser.parseVehicleFile(file, file.name)
+    console.log('解析結果:', { success: parseResult.success, dataLength: parseResult.data?.length })
+
+    if (!parseResult.success) {
+      return NextResponse.json({
+        success: false,
+        error: '檔案解析失敗',
+        details: parseResult.errors.join(', ')
+      }, { status: 400 })
+    }
+
+    // 返回解析結果
     return NextResponse.json({
       success: true,
-      message: '檔案上傳API正常 (debug mode)',
-      file_info: {
-        name: file.name,
-        size: file.size,
-        type: file.type
-      },
-      note: 'FileParser temporarily disabled for debugging'
+      data: parseResult.data,
+      summary: parseResult.summary,
+      errors: parseResult.errors,
+      message: `成功解析 ${parseResult.data.length} 筆車輛數據`
     })
     
   } catch (error) {
@@ -301,16 +319,35 @@ async function importVehiclesToDatabase(vehicles: VehicleData[]) {
   }
 }
 
-// 📋 獲取CSV範本 - 極簡版本
+// 📋 獲取CSV範本
 export async function GET() {
-  // 最簡單的實現
-  return NextResponse.json({
-    success: true,
-    message: 'CSV Template API is working',
-    template_url: '/api/vehicle-file-upload/template',
-    sample_data: {
-      headers: ['brand', 'model', 'year', 'refrigerantType', 'fillAmount'],
-      example: ['Toyota', 'Camry', '2020', 'R1234yf', '650g']
-    }
-  })
+  try {
+    console.log('GET /api/vehicle-file-upload called')
+    
+    const template = [
+      '品牌,品牌英文,車款,型號英文,年份,排氣量,冷媒類型,充填量,油類型,油量,備註',
+      'Toyota,Toyota,Camry,Camry,2020,2.0L,R1234yf,650g,PAG46,120ml,範例資料',
+      'Honda,Honda,Civic,Civic,2019,1.5L,R134a,475g,PAG46,100ml,範例資料',
+      'BMW,BMW,320i,320i,2021,2.0L,R1234yf,750g,PAG100,180ml,渦輪引擎'
+    ].join('\n')
+
+    return new NextResponse(template, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="vehicle_template.csv"',
+        'Cache-Control': 'no-cache',
+        'X-Content-Type-Options': 'nosniff'
+      }
+    })
+    
+  } catch (error) {
+    console.error('GET /api/vehicle-file-upload error:', error)
+    return NextResponse.json({
+      success: false,
+      error: 'Template generation failed',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, { status: 500 })
+  }
 } 
