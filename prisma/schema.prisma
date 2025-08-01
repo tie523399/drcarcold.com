@@ -189,15 +189,41 @@ model CompanyInfo {
   id              String    @id @default(cuid())
   companyName     String    @default("車冷博士")
   companyNameEn   String    @default("Dr. Car Cold")
+  
+  // 基本聯絡資訊
   phone           String    @default("04-26301915")
+  emergencyPhone  String?   // 24小時緊急專線
   fax             String?
   email           String    @default("hongshun.TW@gmail.com")
+  lineId          String?   // Line官方帳號
+  lineUrl         String?   // Line連結
+  
+  // 地址資訊
   address         String    @default("台中市龍井區臨港東路二段100號")
   addressEn       String?
+  latitude        Float?    // 緯度
+  longitude       Float?    // 經度
+  
+  // 營業時間
   businessHours   String    @default("週一至週五 8:30-17:30")
   businessHoursEn String?
+  emergencyService String   @default("24小時緊急服務")
+  
+  // 服務區域 (JSON格式)
+  serviceAreas    String?   // JSON: [{"name":"台北市","coverage":"100%","response":"30分鐘"}]
+  
+  // 社交媒體
+  facebook        String?
+  instagram       String?
+  youtube         String?
+  
+  // 公司資訊
   description     String?   // 公司簡介
   descriptionEn   String?
+  
+  // 網站設定
+  website         String    @default("https://drcarcold.com")
+  
   updatedAt       DateTime  @updatedAt
 }
 

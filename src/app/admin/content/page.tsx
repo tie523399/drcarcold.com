@@ -147,9 +147,25 @@ function CompanyInfoTab() {
               <Input {...register('phone', { required: '請輸入聯絡電話' })} />
             </div>
             <div>
+              <label className="block text-sm font-medium mb-2">24小時緊急專線</label>
+              <Input {...register('emergencyPhone')} placeholder="例：+886-9-1234-5678" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <label className="block text-sm font-medium mb-2">傳真號碼</label>
               <Input {...register('fax')} />
             </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Line ID</label>
+              <Input {...register('lineId')} placeholder="例：0903049150" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Line 連結</label>
+            <Input {...register('lineUrl')} placeholder="例：https://line.me/ti/p/0903049150" />
           </div>
 
           <div>
@@ -169,6 +185,17 @@ function CompanyInfoTab() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
+              <label className="block text-sm font-medium mb-2">緯度</label>
+              <Input {...register('latitude')} type="number" step="any" placeholder="例：24.2633" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">經度</label>
+              <Input {...register('longitude')} type="number" step="any" placeholder="例：120.5431" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
               <label className="block text-sm font-medium mb-2">營業時間（中文）</label>
               <Input {...register('businessHours')} />
             </div>
@@ -176,6 +203,41 @@ function CompanyInfoTab() {
               <label className="block text-sm font-medium mb-2">營業時間（英文）</label>
               <Input {...register('businessHoursEn')} />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">緊急服務說明</label>
+            <Input {...register('emergencyService')} placeholder="例：24小時緊急服務" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">服務區域 (JSON格式)</label>
+            <textarea 
+              {...register('serviceAreas')}
+              className="w-full min-h-[100px] p-2 border border-gray-300 rounded-md"
+              placeholder='例：[{"name":"台北市","coverage":"100%","response":"30分鐘"},{"name":"新北市","coverage":"95%","response":"45分鐘"}]'
+            />
+            <p className="text-xs text-gray-500 mt-1">請輸入JSON格式的服務區域資料</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Facebook</label>
+              <Input {...register('facebook')} placeholder="Facebook 粉絲頁網址" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Instagram</label>
+              <Input {...register('instagram')} placeholder="Instagram 帳號網址" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">YouTube</label>
+              <Input {...register('youtube')} placeholder="YouTube 頻道網址" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">網站網址</label>
+            <Input {...register('website')} placeholder="例：https://drcarcold.com" />
           </div>
 
           <div>

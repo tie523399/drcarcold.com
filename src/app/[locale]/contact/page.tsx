@@ -116,9 +116,62 @@ export async function generateMetadata({ params: { locale } }: { params: { local
   }
 }
 
+async function getCompanyInfo() {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://drcarcold.com'}/api/company-info`, {
+      cache: 'no-store'
+    })
+    if (!response.ok) {
+      throw new Error('Failed to fetch company info')
+    }
+    return await response.json()
+  } catch (error) {
+    console.error('Error fetching company info:', error)
+    // 返回預設值
+    return {
+      companyName: '車冷博士',
+      companyNameEn: 'Dr. Car Cold',
+      phone: '04-26301915',
+      emergencyPhone: '+886-9-xxxx-xxxx',
+      email: 'hongshun.TW@gmail.com',
+      lineId: '0903049150',
+      lineUrl: 'https://line.me/ti/p/0903049150',
+      address: '台中市龍井區臨港東路二段100號',
+      businessHours: '週一至週五 09:30-17:30',
+      emergencyService: '24小時緊急服務',
+      serviceAreas: JSON.stringify([
+        { name: '台北市', coverage: '100%', response: '30分鐘' },
+        { name: '新北市', coverage: '95%', response: '45分鐘' },
+        { name: '桃園市', coverage: '90%', response: '60分鐘' },
+        { name: '基隆市', coverage: '85%', response: '75分鐘' }
+      ]),
+      website: 'https://drcarcold.com'
+    }
+  }
+}
+
 export default async function ContactPage({ params: { locale } }: { params: { locale: string } }) {
   const t = await getTranslations({ locale })
   const isZh = locale === 'zh'
+  
+  // 獲取動態公司資訊
+  const companyInfo = await getCompanyInfo()
+  
+  // 解析服務區域
+  let serviceAreas = [
+    { name: '台北市', coverage: '100%', response: '30分鐘' },
+    { name: '新北市', coverage: '95%', response: '45分鐘' },
+    { name: '桃園市', coverage: '90%', response: '60分鐘' },
+    { name: '基隆市', coverage: '85%', response: '75分鐘' }
+  ]
+  
+  if (companyInfo.serviceAreas) {
+    try {
+      serviceAreas = JSON.parse(companyInfo.serviceAreas)
+    } catch (e) {
+      console.error('Error parsing service areas:', e)
+    }
+  }
 
   // 本地商家結構化資料
   const jsonLd = {
@@ -136,24 +189,24 @@ export default async function ContactPage({ params: { locale } }: { params: { lo
       // 地址資訊
       address: {
         '@type': 'PostalAddress',
-        streetAddress: '待補充詳細地址',
-        addressLocality: '台北市',
-        addressRegion: '台北市',
-        postalCode: '10001',
+        streetAddress: companyInfo.address || '台中市龍井區臨港東路二段100號',
+        addressLocality: '台中市',
+        addressRegion: '台中市',
+        postalCode: '43361',
         addressCountry: 'TW'
       },
       
       // 地理座標
       geo: {
         '@type': 'GeoCoordinates',
-        latitude: 25.0330,
-        longitude: 121.5654
+        latitude: companyInfo.latitude || 24.2633,
+        longitude: companyInfo.longitude || 120.5431
       },
       
       // 聯絡資訊
-      telephone: '+886-2-xxxx-xxxx',
-      email: 'info@drcarcold.com',
-      url: 'https://drcarcold.com',
+      telephone: companyInfo.phone || '04-26301915',
+      email: companyInfo.email || 'hongshun.TW@gmail.com',
+      url: companyInfo.website || 'https://drcarcold.com',
       
       // 營業時間
       openingHoursSpecification: [
@@ -313,42 +366,36 @@ export default async function ContactPage({ params: { locale } }: { params: { lo
     }
   }
 
+  // 使用動態資料生成聯絡方式
   const contactMethods = [
     {
       icon: Phone,
       title: isZh ? '服務專線' : 'Service Hotline',
-      content: '+886-2-xxxx-xxxx',
-      description: isZh ? '週一至週六 08:00-18:00' : 'Mon-Sat 08:00-18:00',
-      action: 'tel:+886-2-xxxx-xxxx'
+      content: companyInfo.phone || '04-26301915',
+      description: companyInfo.businessHours || (isZh ? '週一至週五 09:30-17:30' : 'Mon-Fri 09:30-17:30'),
+      action: `tel:${companyInfo.phone || '04-26301915'}`
     },
-    {
+    ...(companyInfo.emergencyPhone ? [{
       icon: Smartphone,
       title: isZh ? '24小時緊急專線' : '24-Hour Emergency',
-      content: '+886-9-xxxx-xxxx',
-      description: isZh ? '全年無休緊急服務' : '24/7 Emergency Service',
-      action: 'tel:+886-9-xxxx-xxxx'
-    },
-    {
+      content: companyInfo.emergencyPhone,
+      description: companyInfo.emergencyService || (isZh ? '全年無休緊急服務' : '24/7 Emergency Service'),
+      action: `tel:${companyInfo.emergencyPhone}`
+    }] : []),
+    ...(companyInfo.lineId ? [{
       icon: MessageSquare,
       title: isZh ? 'Line 官方帳號' : 'Official Line Account',
-      content: '@drcarcold',
+      content: companyInfo.lineId.startsWith('@') ? companyInfo.lineId : `@${companyInfo.lineId}`,
       description: isZh ? '快速諮詢回覆' : 'Quick Response',
-      action: 'https://line.me/ti/p/@drcarcold'
-    },
+      action: companyInfo.lineUrl || `https://line.me/ti/p/${companyInfo.lineId}`
+    }] : []),
     {
       icon: Mail,
       title: isZh ? '電子信箱' : 'Email',
-      content: 'info@drcarcold.com',
+      content: companyInfo.email || 'hongshun.TW@gmail.com',
       description: isZh ? '24小時內回覆' : 'Reply within 24 hours',
-      action: 'mailto:info@drcarcold.com'
+      action: `mailto:${companyInfo.email || 'hongshun.TW@gmail.com'}`
     }
-  ]
-
-  const serviceAreas = [
-    { name: '台北市', coverage: '100%', response: '30分鐘' },
-    { name: '新北市', coverage: '95%', response: '45分鐘' },
-    { name: '桃園市', coverage: '90%', response: '60分鐘' },
-    { name: '基隆市', coverage: '85%', response: '75分鐘' }
   ]
 
   return (
