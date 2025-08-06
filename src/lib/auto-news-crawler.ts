@@ -2,12 +2,22 @@
 // 定期爬取指定新聞來源，並自動處理、改寫和發布文章
 
 import { prisma } from '@/lib/prisma'
-import { simpleScrapeArticle } from '@/lib/simple-scraper'
-import { ArticleContent } from '@/lib/web-scraper'
-import { rewriteArticleWithAI } from '@/lib/telegram-bot'
+import { rewriteWithAI } from '@/lib/ai-service'
 import { MonitoringService, MonitoringConfig, LogLevel } from '@/lib/monitoring-service'
 import { ContentQualityChecker, ArticleData } from '@/lib/content-quality-checker'
 import { DuplicateChecker } from '@/lib/duplicate-checker'
+import { generateNewsImages } from '@/lib/news-image-generator'
+import * as cheerio from 'cheerio'
+
+// 文章內容介面
+interface ArticleContent {
+  title: string
+  content: string
+  author?: string
+  publishDate?: string
+  url: string
+  tags?: string[]
+}
 
 // 爬取結果介面
 interface CrawlResult {
@@ -46,6 +56,26 @@ interface SystemSettings {
   openaiApiKey: string
   seoKeywords: string
   crawlInterval: number
+}
+
+// 簡單的文章爬取函數
+async function simpleScrapeArticle(url: string): Promise<ArticleContent> {
+  const response = await fetch(url)
+  const html = await response.text()
+  const $ = cheerio.load(html)
+  
+  // 基本的文章內容提取
+  const title = $('h1').first().text() || $('title').text() || '無標題'
+  const content = $('article, .content, .post-content, .entry-content, main p').text().slice(0, 2000) || '無內容'
+  const author = $('meta[name="author"]').attr('content') || $('.author').text() || '未知作者'
+  
+  return {
+    title: title.trim(),
+    content: content.trim(),
+    author: author.trim(),
+    url,
+    tags: []
+  }
 }
 
 export class AutoNewsCrawler {
@@ -786,18 +816,66 @@ export class AutoNewsCrawler {
     }
   }
 
+  // 生成SEO優化的文章資料
+  private async generateSEOArticle(articleData: ArticleContent, source: NewsSource): Promise<any> {
+    // 生成SEO友好的slug
+    const slug = articleData.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\u4e00-\u9fa5]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
+      .substring(0, 100)
+    
+    // 計算閱讀時間
+    const readingTime = Math.ceil(articleData.content.length / 300)
+    
+    // 生成摘要
+    const excerpt = articleData.content.substring(0, 200) + '...'
+    
+    // 生成SEO關鍵字
+    const seoKeywords = this.settings?.seoKeywords || '汽車冷媒,空調維修,冷凍空調'
+    
+    // 生成動態圖片
+    const imageData = generateNewsImages(
+      articleData.title,
+      articleData.content,
+      articleData.tags || [],
+      source.name
+    )
+    
+    return {
+      title: articleData.title,
+      slug,
+      content: articleData.content,
+      excerpt,
+      author: articleData.author || source.name,
+      tags: JSON.stringify(articleData.tags || []),
+      coverImage: imageData.coverImage,
+      ogImage: imageData.ogImage,
+      seoTitle: articleData.title,
+      seoDescription: excerpt,
+      seoKeywords,
+      ogTitle: articleData.title,
+      ogDescription: excerpt,
+      structuredData: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": articleData.title,
+        "author": { "@type": "Person", "name": articleData.author || source.name },
+        "datePublished": new Date().toISOString(),
+        "publisher": { "@type": "Organization", "name": "車冷博士" }
+      }),
+      readingTime,
+      sourceUrl: articleData.url,
+      sourceName: source.name
+    }
+  }
+
   // 儲存並發布文章
   private async saveAndPublishArticle(articleData: ArticleContent, source: NewsSource): Promise<void> {
     try {
-      // 使用 SEO 優化的爬蟲處理文章
-      const { SEONewsCrawler } = await import('./seo-news-crawler')
-      const seoCrawler = new SEONewsCrawler()
-      
-      // 獲取 SEO 優化的文章資料
-      const seoArticle = await seoCrawler.processArticleForSEO(
-        articleData.url,
-        source.name
-      )
+      // 生成SEO優化的文章資料
+      const seoArticle = await this.generateSEOArticle(articleData, source)
       
       // 檢查設定是否自動發布
       const autoPublish = await this.shouldAutoPublish()
@@ -830,13 +908,27 @@ export class AutoNewsCrawler {
     return this.settings?.autoPublish || false
   }
 
-  // 生成 slug
-  private generateSlug(title: string): string {
-    return title
+  // 生成 URL 友好的 slug
+  private generateSlug(title: string, id?: string): string {
+    if (!title) return `news-${id || Date.now()}`
+    
+    // 只保留英文字母、數字，移除所有其他字符
+    let slug = title
       .toLowerCase()
-      .replace(/[^a-z0-9\u4e00-\u9fa5]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      + '-' + Date.now()
+      .replace(/[^a-z0-9\s]/g, '') // 只保留英文字母、數字和空格
+      .replace(/\s+/g, '-') // 將空格轉為連字符
+      .replace(/-+/g, '-') // 合並多個連字符
+      .replace(/^-+|-+$/g, '') // 移除開頭和結尾的連字符
+    
+    // 如果清理後為空或太短，使用時間戳
+    if (!slug || slug.length < 3) {
+      slug = `news-${Date.now()}`
+    } else {
+      // 限制長度並添加時間戳確保唯一性
+      slug = slug.substring(0, 30) + '-' + Date.now()
+    }
+    
+    return slug.replace(/-+$/, '') // 確保不以連字符結尾
   }
 
   // 延遲函數

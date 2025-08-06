@@ -295,7 +295,7 @@ async function main() {
         tags: JSON.stringify(['冷媒', '保養', '汽車空調', '維修']),
         isPublished: true,
         publishedAt: new Date(),
-        image: '/images/news/car-ac-maintenance.jpg'
+        ogImage: '/images/news/car-ac-maintenance.jpg'
       },
     }),
   ])

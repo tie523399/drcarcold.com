@@ -2,7 +2,7 @@
 // 負責記錄爬取活動、分析結果並發送通知
 
 import { prisma } from '@/lib/prisma'
-import { sendTelegramMessage } from '@/lib/telegram-bot'
+import { sendTelegramMessage } from '@/lib/telegram-bot-enhanced'
 
 // 爬取結果統計
 export interface CrawlStats {

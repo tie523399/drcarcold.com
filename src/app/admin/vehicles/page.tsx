@@ -1,478 +1,452 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Edit, Trash2, Plus, Car, Truck, MapPin, Upload, FileText, Download, AlertCircle, CheckCircle } from 'lucide-react'
-import { AlertDialog } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { 
+  Upload, 
+  Search, 
+  Car, 
+  Database,
+  Download,
+  RefreshCw,
+  Plus,
+  Edit,
+  Trash2,
+  CheckCircle,
+  AlertTriangle,
+  FileSpreadsheet
+} from 'lucide-react'
 
-const categoryIcons: Record<string, any> = {
-  regular: Car,
-  truck: Truck,
-  malaysia: MapPin,
-}
-
-const categoryNames: Record<string, string> = {
-  regular: '一般車輛',
-  truck: '大型車輛',
-  malaysia: '馬來西亞車',
-}
-
-interface VehicleData {
+interface Vehicle {
+  id: string
   brand: string
   model: string
+  info?: string
   year?: string
-  refrigerantType?: string
-  fillAmount?: string
-  oilType?: string
-  oilAmount?: string
-  notes?: string
+  refrigerant?: string
+  amount?: string
+  oil?: string
+  source: string
+  createdAt: string
 }
 
-interface ParseResult {
-  success: boolean
-  data: VehicleData[]
-  summary: {
-    totalRecords: number
-    validRecords: number
-    brands: string[]
-    years: string[]
-  }
-  errors?: string[]
-}
+export default function ImprovedVehiclesPage() {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
+  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [brandFilter, setBrandFilter] = useState('all')
 
-export default function VehiclesPage() {
-  const [brands, setBrands] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [selectedCategory, setSelectedCategory] = useState<string>('all')
-  const [deleteDialog, setDeleteDialog] = useState<{
-    open: boolean
-    brandId: string | null
-    brandName: string
-  }>({
-    open: false,
-    brandId: null,
-    brandName: '',
+  // 新增車輛資料狀態
+  const [newVehicle, setNewVehicle] = useState({
+    brand: '',
+    model: '',
+    year: '',
+    refrigerant: 'R134a',
+    amount: '',
+    oil: '',
+    info: ''
   })
-  const [isDeleting, setIsDeleting] = useState(false)
-  
-  // 文件上傳相關狀態
-  const [isUploading, setIsUploading] = useState(false)
-  const [uploadResult, setUploadResult] = useState<ParseResult | null>(null)
-  const [showUploadDialog, setShowUploadDialog] = useState(false)
-  const [isImporting, setIsImporting] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // 批量匯入狀態
+  const [batchData, setBatchData] = useState('')
+  const [importing, setImporting] = useState(false)
+
+  // 載入車輛數據
+  const fetchVehicles = async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({ limit: '50' })
+      if (brandFilter !== 'all') params.append('brand', brandFilter)
+      if (searchTerm) params.append('search', searchTerm)
+
+      const response = await fetch(`/api/vehicles?${params}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setVehicles(data.data)
+      }
+    } catch (error) {
+      console.error('載入車輛數據失敗:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    fetchBrands()
-  }, [])
+    fetchVehicles()
+  }, [brandFilter, searchTerm])
 
-  const fetchBrands = async () => {
-    try {
-      const response = await fetch('/api/vehicle-brands')
-      const data = await response.json()
-      setBrands(data)
-    } catch (error) {
-      console.error('Error fetching brands:', error)
-    } finally {
-      setIsLoading(false)
+  // 新增單筆車輛
+  const handleAddVehicle = async () => {
+    if (!newVehicle.brand || !newVehicle.model) {
+      alert('請至少填入品牌和車型！')
+      return
     }
-  }
-
-  const handleDelete = async () => {
-    if (!deleteDialog.brandId) return
-    
-    setIsDeleting(true)
-    try {
-      const response = await fetch(`/api/vehicle-brands/${deleteDialog.brandId}`, {
-        method: 'DELETE',
-      })
-
-      if (response.ok) {
-        setBrands(brands.filter(b => b.id !== deleteDialog.brandId))
-        setDeleteDialog({ open: false, brandId: null, brandName: '' })
-      } else {
-        alert('刪除失敗')
-      }
-    } catch (error) {
-      console.error('Error deleting brand:', error)
-      alert('刪除時發生錯誤')
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
-  // 📤 文件上傳處理
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    setIsUploading(true)
-    setUploadResult(null)
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const response = await fetch('/api/vehicle-file-upload', {
+      const response = await fetch('/api/vehicles', {
         method: 'POST',
-        body: formData
-      })
-
-      const result = await response.json()
-
-      if (result.success) {
-        setUploadResult(result)
-        setShowUploadDialog(true)
-      } else {
-        alert(`上傳失敗: ${result.error}`)
-      }
-    } catch (error) {
-      console.error('Upload error:', error)
-      alert('上傳時發生錯誤')
-    } finally {
-      setIsUploading(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
-    }
-  }
-
-  // 📥 導入車輛數據
-  const handleImportData = async () => {
-    if (!uploadResult?.data) return
-
-    setIsImporting(true)
-    try {
-      const response = await fetch('/api/vehicle-file-upload', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          vehicles: uploadResult.data,
-          action: 'import'
+          brand: newVehicle.brand,
+          model: newVehicle.model,
+          year: newVehicle.year || null,
+          refrigerant: newVehicle.refrigerant,
+          amount: newVehicle.amount || null,
+          oil: newVehicle.oil || null,
+          info: newVehicle.info || null,
+          source: 'manual'
         })
       })
 
-      const result = await response.json()
-
-      if (result.success) {
-        alert(result.message)
-        setShowUploadDialog(false)
-        setUploadResult(null)
-        fetchBrands() // 重新載入品牌列表
-      } else {
-        alert(`導入失敗: ${result.error}`)
-      }
-    } catch (error) {
-      console.error('Import error:', error)
-      alert('導入時發生錯誤')
-    } finally {
-      setIsImporting(false)
-    }
-  }
-
-  // 📋 下載CSV範本
-  const downloadTemplate = async () => {
-    try {
-      const response = await fetch('/api/vehicle-file-upload', {
-        method: 'GET'
-      })
-      
       if (response.ok) {
-        const blob = await response.blob()
-        const url = URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'vehicle-template.csv'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        URL.revokeObjectURL(url)
+        alert('新增成功！')
+        setNewVehicle({
+          brand: '',
+          model: '',
+          year: '',
+          refrigerant: 'R134a',
+          amount: '',
+          oil: '',
+          info: ''
+        })
+        fetchVehicles()
+      } else {
+        alert('新增失敗！')
       }
     } catch (error) {
-      console.error('Download error:', error)
-      alert('下載範本時發生錯誤')
+      console.error('新增車輛失敗:', error)
+      alert('新增失敗，請檢查網路連線')
     }
   }
 
-  const filteredBrands = selectedCategory === 'all' 
-    ? brands 
-    : brands.filter(b => b.category === selectedCategory)
+  // 批量匯入
+  const handleBatchImport = async () => {
+    if (!batchData.trim()) {
+      alert('請輸入要匯入的資料！')
+      return
+    }
 
-  if (isLoading) {
-    return <div className="p-8">載入中...</div>
+    setImporting(true)
+    try {
+      const lines = batchData.trim().split('\n').filter(line => line.trim())
+      const vehicles = []
+
+      for (const line of lines) {
+        const parts = line.split(',').map(p => p.trim())
+        if (parts.length >= 2) {
+          vehicles.push({
+            brand: parts[0],
+            model: parts[1],
+            year: parts[2] || null,
+            refrigerant: parts[3] || 'R134a',
+            amount: parts[4] || null,
+            oil: parts[5] || null,
+            info: parts[6] || null,
+            source: 'batch'
+          })
+        }
+      }
+
+      for (const vehicle of vehicles) {
+        await fetch('/api/vehicles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(vehicle)
+        })
+      }
+
+      alert(`批量匯入完成！共處理 ${vehicles.length} 筆資料`)
+      setBatchData('')
+      fetchVehicles()
+    } catch (error) {
+      console.error('批量匯入失敗:', error)
+      alert('批量匯入失敗！')
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  // 刪除車輛
+  const handleDeleteVehicle = async (id: string) => {
+    if (!confirm('確定要刪除這筆資料嗎？')) return
+
+    try {
+      const response = await fetch(`/api/vehicles/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        alert('刪除成功！')
+        fetchVehicles()
+      } else {
+        alert('刪除失敗！')
+      }
+    } catch (error) {
+      console.error('刪除失敗:', error)
+      alert('刪除失敗！')
+    }
   }
 
   return (
-    <div className="p-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="p-6 space-y-6">
+      {/* 頁面標題 */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">汽車冷媒填充資訊</h1>
-          <p className="text-gray-600 mt-2">管理汽車冷媒填充資料庫</p>
+          <h1 className="text-3xl font-bold">🚗 汽車冷媒資料管理</h1>
+          <p className="text-gray-600">簡單易用的車輛冷媒資料管理系統</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={downloadTemplate}>
-            <Download className="mr-2 h-4 w-4" />
-            下載CSV範本
+          <Button onClick={() => window.open('/api/vehicles/download?type=import', '_blank')}>
+            <Download className="h-4 w-4 mr-2" />
+            下載範本
           </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.csv,.xlsx,.xls"
-            onChange={handleFileUpload}
-            className="hidden"
-          />
-          <Button
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-          >
-            <Upload className="mr-2 h-4 w-4" />
-            {isUploading ? '解析中...' : '上傳文件 (PDF/CSV/Excel)'}
+          <Button onClick={fetchVehicles} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            重新載入
           </Button>
-          <Link href="/admin/vehicles/import">
-            <Button variant="outline">
-              <Upload className="mr-2 h-4 w-4" />
-              手動匯入
-            </Button>
-          </Link>
-          <Link href="/admin/vehicles/new">
-            <Button variant="premium">
-              <Plus className="mr-2 h-4 w-4" />
-              新增品牌
-            </Button>
-          </Link>
         </div>
       </div>
 
-      {/* 分類篩選 */}
-      <div className="mb-6 flex gap-2">
-        <Button
-          variant={selectedCategory === 'all' ? 'default' : 'outline'}
-          onClick={() => setSelectedCategory('all')}
-        >
-          全部 ({brands.length})
-        </Button>
-        {Object.entries(categoryNames).map(([key, name]) => {
-          const count = brands.filter(b => b.category === key).length
-          return (
-            <Button
-              key={key}
-              variant={selectedCategory === key ? 'default' : 'outline'}
-              onClick={() => setSelectedCategory(key)}
-            >
-              {name} ({count})
-            </Button>
-          )
-        })}
-      </div>
+      {/* 功能選單 */}
+      <Tabs defaultValue="list" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="list">📋 查看資料</TabsTrigger>
+          <TabsTrigger value="add">➕ 新增資料</TabsTrigger>
+          <TabsTrigger value="batch">📤 批量匯入</TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>汽車冷媒填列表</CardTitle>
-          <CardDescription>共 {filteredBrands.length} 個品牌</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>品牌名稱</TableHead>
-                <TableHead>英文名稱</TableHead>
-                <TableHead>類別</TableHead>
-                <TableHead>車型數量</TableHead>
-                <TableHead>排序</TableHead>
-                <TableHead className="text-right">操作</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredBrands.map((brand) => {
-                const Icon = categoryIcons[brand.category] || Car
-                return (
-                  <TableRow key={brand.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4 text-gray-500" />
-                        {brand.name}
+        {/* 查看資料 */}
+        <TabsContent value="list" className="space-y-4">
+          {/* 搜尋篩選 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Search className="h-5 w-5" />
+                搜尋篩選
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Input
+                  placeholder="搜尋品牌或車型..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <Select value={brandFilter} onValueChange={setBrandFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="選擇品牌" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">所有品牌</SelectItem>
+                    <SelectItem value="TOYOTA">Toyota</SelectItem>
+                    <SelectItem value="HONDA">Honda</SelectItem>
+                    <SelectItem value="NISSAN">Nissan</SelectItem>
+                    <SelectItem value="MAZDA">Mazda</SelectItem>
+                    <SelectItem value="BMW">BMW</SelectItem>
+                    <SelectItem value="BENZ">Mercedes-Benz</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* 車輛列表 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Database className="h-5 w-5" />
+                  車輛資料 ({vehicles.length} 筆)
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-8">載入中...</div>
+              ) : vehicles.length > 0 ? (
+                <div className="space-y-3">
+                  {vehicles.map((vehicle) => (
+                    <div
+                      key={vehicle.id}
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="outline">{vehicle.brand}</Badge>
+                          <span className="font-medium">{vehicle.model}</span>
+                          {vehicle.year && <span className="text-gray-500">({vehicle.year})</span>}
+                        </div>
+                        <div className="text-sm text-gray-600 grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <span>🧊 {vehicle.refrigerant || 'R134a'}</span>
+                          <span>📏 {vehicle.amount || '-'}</span>
+                          <span>🛢️ {vehicle.oil || '-'}</span>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>{brand.nameEn}</TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                        {categoryNames[brand.category]}
-                      </span>
-                    </TableCell>
-                    <TableCell>{brand._count?.models || 0}</TableCell>
-                    <TableCell>{brand.order}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link href={`/admin/vehicles/${brand.id}/models`}>
-                          <Button variant="outline" size="sm">
-                            管理車型
-                          </Button>
-                        </Link>
-                        <Link href={`/admin/vehicles/${brand.id}/edit`}>
-                          <Button variant="outline" size="sm" title="編輯品牌" aria-label="編輯品牌">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </Link>
+                      <div className="flex gap-2">
                         <Button
-                          variant="danger"
                           size="sm"
-                          onClick={() => setDeleteDialog({
-                            open: true,
-                            brandId: brand.id,
-                            brandName: brand.name,
-                          })}
-                          title="刪除品牌"
-                          aria-label="刪除品牌"
+                          variant="outline"
+                          onClick={() => handleDeleteVehicle(vehicle.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-          {filteredBrands.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-600">尚無品牌資料</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* 刪除確認對話框 */}
-      <AlertDialog
-        open={deleteDialog.open}
-        onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
-        title="確認刪除"
-        description={`您確定要刪除「${deleteDialog.brandName}」嗎？此操作將同時刪除該品牌下的所有車型資料。`}
-        onConfirm={handleDelete}
-        confirmText="刪除"
-        isLoading={isDeleting}
-      />
-
-      {/* 文件解析結果預覽對話框 */}
-      {showUploadDialog && uploadResult && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[80vh] overflow-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">文件解析結果</h2>
-              <Button
-                variant="outline"
-                onClick={() => setShowUploadDialog(false)}
-              >
-                關閉
-              </Button>
-            </div>
-
-            {/* 解析統計 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-blue-600">
-                  {uploadResult.summary.totalRecords}
-                </div>
-                <div className="text-sm text-blue-600">總記錄數</div>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">
-                  {uploadResult.summary.validRecords}
-                </div>
-                <div className="text-sm text-green-600">有效記錄</div>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-purple-600">
-                  {uploadResult.summary.brands.length}
-                </div>
-                <div className="text-sm text-purple-600">發現品牌</div>
-              </div>
-              <div className="bg-orange-50 p-4 rounded-lg">
-                <div className="text-2xl font-bold text-orange-600">
-                  {uploadResult.summary.years.length}
-                </div>
-                <div className="text-sm text-orange-600">年份範圍</div>
-              </div>
-            </div>
-
-            {/* 錯誤信息 */}
-            {uploadResult.errors && uploadResult.errors.length > 0 && (
-              <div className="mb-6">
-                <h3 className="font-semibold text-red-600 mb-2 flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-1" />
-                  解析警告 ({uploadResult.errors.length})
-                </h3>
-                <div className="bg-red-50 p-3 rounded max-h-32 overflow-y-auto">
-                  {uploadResult.errors.map((error, index) => (
-                    <div key={index} className="text-sm text-red-700">
-                      {error}
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* 數據預覽 */}
-            <div className="mb-6">
-              <h3 className="font-semibold mb-2 flex items-center">
-                <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
-                解析數據預覽 (前10筆)
-              </h3>
-              <div className="border rounded overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>品牌</TableHead>
-                      <TableHead>型號</TableHead>
-                      <TableHead>年份</TableHead>
-                      <TableHead>冷媒類型</TableHead>
-                      <TableHead>充填量</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {uploadResult.data.slice(0, 10).map((vehicle, index) => (
-                      <TableRow key={index}>
-                        <TableCell className="font-medium">{vehicle.brand}</TableCell>
-                        <TableCell>{vehicle.model}</TableCell>
-                        <TableCell>{vehicle.year || '-'}</TableCell>
-                        <TableCell>{vehicle.refrigerantType || '-'}</TableCell>
-                        <TableCell>{vehicle.fillAmount || '-'}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-              {uploadResult.data.length > 10 && (
-                <p className="text-sm text-gray-600 mt-2">
-                  還有 {uploadResult.data.length - 10} 筆數據...
-                </p>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  目前沒有車輛資料
+                </div>
               )}
-            </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            {/* 動作按鈕 */}
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowUploadDialog(false)}
-              >
-                取消
+        {/* 新增資料 */}
+        <TabsContent value="add" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                新增車輛資料
+              </CardTitle>
+              <CardDescription>
+                填入車輛的冷媒相關資料
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">品牌 *</label>
+                  <Input
+                    placeholder="例：TOYOTA"
+                    value={newVehicle.brand}
+                    onChange={(e) => setNewVehicle(prev => ({ ...prev, brand: e.target.value.toUpperCase() }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">車型 *</label>
+                  <Input
+                    placeholder="例：ALTIS"
+                    value={newVehicle.model}
+                    onChange={(e) => setNewVehicle(prev => ({ ...prev, model: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">年份</label>
+                  <Input
+                    placeholder="例：2014-2018"
+                    value={newVehicle.year}
+                    onChange={(e) => setNewVehicle(prev => ({ ...prev, year: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">冷媒類型</label>
+                  <Select
+                    value={newVehicle.refrigerant}
+                    onValueChange={(value) => setNewVehicle(prev => ({ ...prev, refrigerant: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="R134a">R134a</SelectItem>
+                      <SelectItem value="R1234yf">R1234yf</SelectItem>
+                      <SelectItem value="R12">R12</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">冷媒量</label>
+                  <Input
+                    placeholder="例：500±25g"
+                    value={newVehicle.amount}
+                    onChange={(e) => setNewVehicle(prev => ({ ...prev, amount: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">冷凍油</label>
+                  <Input
+                    placeholder="例：PAG 46 150ml"
+                    value={newVehicle.oil}
+                    onChange={(e) => setNewVehicle(prev => ({ ...prev, oil: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">備註</label>
+                <Input
+                  placeholder="額外資訊..."
+                  value={newVehicle.info}
+                  onChange={(e) => setNewVehicle(prev => ({ ...prev, info: e.target.value }))}
+                />
+              </div>
+              <Button onClick={handleAddVehicle} className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                新增車輛資料
               </Button>
-              <Button
-                onClick={handleImportData}
-                disabled={isImporting || uploadResult.data.length === 0}
-                variant="premium"
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* 批量匯入 */}
+        <TabsContent value="batch" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileSpreadsheet className="h-5 w-5" />
+                批量匯入資料
+              </CardTitle>
+              <CardDescription>
+                每行一筆資料，格式：品牌,車型,年份,冷媒類型,冷媒量,冷凍油,備註
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium mb-2">📝 格式範例：</h4>
+                <pre className="text-sm bg-white p-2 rounded border">
+{`TOYOTA,ALTIS,2014-2018,R134a,500±25g,PAG 46 150ml,
+HONDA,CIVIC,2016-2021,R1234yf,450±20g,PAG 46 120ml,新款環保冷媒
+NISSAN,SENTRA,2013-2019,R134a,480±25g,PAG 100 140ml,`}
+                </pre>
+              </div>
+              
+              <Textarea
+                placeholder="請輸入要匯入的資料，每行一筆..."
+                value={batchData}
+                onChange={(e) => setBatchData(e.target.value)}
+                rows={10}
+              />
+              
+              <Button 
+                onClick={handleBatchImport} 
+                disabled={importing}
+                className="w-full"
               >
-                {isImporting ? '導入中...' : `確認導入 ${uploadResult.data.length} 筆數據`}
+                {importing ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    匯入中...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="h-4 w-4 mr-2" />
+                    開始批量匯入
+                  </>
+                )}
               </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
-} 
+}

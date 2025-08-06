@@ -31,12 +31,21 @@ export default function ContactForm({ locale }: ContactFormProps) {
     setSubmitStatus('idle')
     
     try {
-      const response = await fetch('/api/contact', {
+      const response = await fetch('/api/contacts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          subject: formData.subject,
+          message: formData.message,
+          customerType: formData.serviceType || '個人',
+          interestedProducts: formData.serviceType,
+          source: 'website'
+        }),
       })
 
       if (response.ok) {

@@ -132,8 +132,8 @@ export class ErrorHandler {
     try {
       // 根據錯誤來源重啟相應服務
       if (error.component.includes('AutoServiceManager')) {
-        const { AutoServiceManager } = await import('./auto-service-manager')
-        const manager = new AutoServiceManager()
+        const { getAutoServiceManager } = await import('./auto-service-manager')
+        const manager = getAutoServiceManager()
         
         console.log('🔄 重啟自動化服務管理器...')
         await manager.stop()
@@ -366,10 +366,10 @@ export class ErrorHandler {
     console.log('🚨 執行緊急停止程序...')
     
     try {
-             // 停止自動化服務
-       const { AutoServiceManager } = await import('./auto-service-manager')
-       const manager = new AutoServiceManager()
-       await manager.stop()
+                          // 停止自動化服務
+      const { getAutoServiceManager } = await import('./auto-service-manager')
+      const manager = getAutoServiceManager()
+      await manager.stop()
       
       // 關閉數據庫連接
       await prisma.$disconnect()

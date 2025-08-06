@@ -33,10 +33,21 @@ export default function NewsPage() {
   const fetchNews = async () => {
     try {
       const response = await fetch('/api/news')
-      const data = await response.json()
-      setNews(data)
+      const result = await response.json()
+      
+      // 檢查 API 返回格式
+      if (result.success && Array.isArray(result.data)) {
+        setNews(result.data)
+      } else if (Array.isArray(result)) {
+        // 兼容舊格式
+        setNews(result)
+      } else {
+        console.error('Unexpected API response format:', result)
+        setNews([])
+      }
     } catch (error) {
       console.error('Error fetching news:', error)
+      setNews([])
     } finally {
       setIsLoading(false)
     }

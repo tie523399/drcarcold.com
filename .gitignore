@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-/.pnp
+.pnp
 .pnp.js
 
 # Testing
@@ -15,8 +15,7 @@ node_modules/
 
 # Misc
 .DS_Store
-*.tsbuildinfo
-next-env.d.ts
+*.pem
 
 # Debug
 npm-debug.log*
@@ -24,6 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Local env files
+.env*.local
 .env.local
 .env.development.local
 .env.test.local
@@ -34,21 +34,56 @@ yarn-error.log*
 
 # TypeScript
 *.tsbuildinfo
+next-env.d.ts
 
-# Prisma
-prisma/dev.db
-prisma/dev.db-journal
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-# IDE
+# IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
 # OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
 # Logs
+logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # Runtime data
 pids
@@ -56,36 +91,50 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
-coverage/
+# Prisma
+prisma/migrations/
 
-# Dependency directories
-jspm_packages/
+# Development files
+*.bat
+*.ps1
+*.sh
+*.csv
+*.json
+*.xlsx
+*.md
+docs/
+.prettierrc
+server_*
+setup_*
+fix_*
+test_*
+quick_*
+railway_*
+check_*
+deploy_*
+analyze_*
+live-*
+build-*
+fix-*
 
-# Optional npm cache directory
-.npm
+# Backup files
+*-backup.*
+*-simple.*
+*-silver.*
 
-# Optional REPL history
-.node_repl_history
+# Development utilities
+create_*.py
+import_*.py
+convert_*.py
 
-# Output of 'npm pack'
-*.tgz
+# Chinese file names
+*中*
+*馬來西亞*
+使用說明.txt
+雙語轉換使用說明.txt
 
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-
-# Railway
-.railway/
-
-# Uploads (keep structure but ignore content in development)
-public/uploads/*/
-!public/uploads/.gitkeep
-
-# Test files
-test_*.bat
-test_*.ps1
-*.test.js
-*.test.ts
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { MediaCarousel } from '@/components/ui/media-carousel'
 import { LatestArticles } from '@/components/home/latest-articles'
+import { SEOBanner } from '@/components/seo/seo-banner'
 import { ArrowRight, Package, Wrench, Users } from 'lucide-react'
 
 export default function HomePage({ params: { locale } }: { params: { locale: string } }) {
@@ -164,6 +165,9 @@ export default function HomePage({ params: { locale } }: { params: { locale: str
           </div>
         </div>
       </section>
+
+      {/* SEO增強橫幅 */}
+      <SEOBanner type="page-top" variant="full" />
 
       {/* Latest Articles Section */}
       <LatestArticles locale={locale} />

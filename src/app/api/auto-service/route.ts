@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const action = searchParams.get('action')
+    const action = searchParams.get('action') || 'status' // 預設為 status
 
     if (action === 'status') {
       const status = autoServiceManager.getStatus()
@@ -22,16 +22,47 @@ export async function GET(request: NextRequest) {
       const publishedArticles = articleStats.find(stat => stat.isPublished)?._count.id || 0
       const draftArticles = articleStats.find(stat => !stat.isPublished)?._count.id || 0
 
+      // 確保配置結構完整
+      const config = {
+        crawlerEnabled: true,
+        crawlerInterval: status.settings?.crawlerInterval || 60,
+        seoGeneratorEnabled: true,
+        seoGeneratorInterval: status.settings?.seoGeneratorInterval || 6,
+        seoGeneratorCount: 2,
+        maxArticleCount: status.settings?.maxArticleCount || 20,
+        cleanupInterval: status.settings?.cleanupInterval || 1,
+        minViewCountToKeep: 0
+      }
+
       const response = NextResponse.json({
         success: true,
         data: {
-          ...status,
+          isRunning: status.isRunning,
+          config: config,
+          services: {
+            crawler: {
+              enabled: true,
+              running: status.services?.crawler?.running || false,
+              interval: status.services?.crawler?.interval || `${config.crawlerInterval} 分鐘`
+            },
+            seoGenerator: {
+              enabled: true,
+              running: status.services?.seoGenerator?.running || false,
+              interval: status.services?.seoGenerator?.interval || `${config.seoGeneratorInterval} 小時`
+            },
+            cleanup: {
+              enabled: true,
+              running: status.services?.cleanup?.running || false,
+              interval: status.services?.cleanup?.interval || `${config.cleanupInterval} 小時`,
+              maxArticles: config.maxArticleCount
+            }
+          },
           statistics: {
             totalArticles,
             publishedArticles,
             draftArticles,
-            maxArticleCount: status.config.maxArticleCount,
-            articlesNeedCleanup: Math.max(0, publishedArticles - status.config.maxArticleCount)
+            maxArticleCount: config.maxArticleCount,
+            articlesNeedCleanup: Math.max(0, publishedArticles - config.maxArticleCount)
           }
         }
       })

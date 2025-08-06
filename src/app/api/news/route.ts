@@ -34,7 +34,20 @@ export async function GET(request: NextRequest) {
     
     const news = await prisma.news.findMany(queryOptions)
     
-    const response = NextResponse.json(news)
+    // 計算總頁數
+    const totalCount = await prisma.news.count({ where })
+    const limitNum = limit ? parseInt(limit, 10) : 10
+    const totalPages = Math.ceil(totalCount / limitNum)
+    
+    const response = NextResponse.json({
+      success: true,
+      data: news,
+      pagination: {
+        total: totalCount,
+        pages: totalPages,
+        limit: limitNum
+      }
+    })
     
     // 設置緩存頭 - 新聞內容經常更新，緩存1分鐘
     response.headers.set('Cache-Control', 'public, max-age=60, s-maxage=60')

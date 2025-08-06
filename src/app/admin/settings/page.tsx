@@ -21,6 +21,11 @@ interface Settings {
   groqApiKey?: string
   geminiApiKey?: string
   cohereApiKey?: string
+  deepseekApiKey?: string
+  zhipuApiKey?: string
+  moonshotApiKey?: string
+  huggingfaceApiKey?: string
+  togetherApiKey?: string
   parallelCrawling?: boolean
   concurrentLimit?: number
   autoSeoEnabled?: boolean
@@ -43,10 +48,15 @@ export default function SettingsPage() {
     autoPublishEnabled: false,
     crawlInterval: 60,
     publishSchedule: '09:00,15:00,21:00',
-    aiProvider: 'openai',
+    aiProvider: 'deepseek',
     groqApiKey: '',
     geminiApiKey: '',
     cohereApiKey: '',
+    deepseekApiKey: '',
+    zhipuApiKey: '',
+    moonshotApiKey: '',
+    huggingfaceApiKey: '',
+    togetherApiKey: '',
     autoSeoEnabled: false,
     seoGenerationSchedule: '10:00',
     seoDailyCount: 1,
@@ -185,14 +195,19 @@ export default function SettingsPage() {
                 AI 服務提供商
               </label>
               <select
-                value={settings.aiProvider || 'openai'}
+                value={settings.aiProvider || 'deepseek'}
                 onChange={(e) => handleChange('aiProvider', e.target.value)}
                 className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               >
-                <option value="openai">OpenAI (付費)</option>
-                <option value="groq">Groq (免費 - 推薦)</option>
-                <option value="gemini">Google Gemini (免費)</option>
-                <option value="cohere">Cohere (免費)</option>
+                <option value="deepseek">DeepSeek (完全免費 - 強烈推薦 🇨🇳)</option>
+                <option value="groq">Groq (免費 - 速度快 ⚡)</option>
+                <option value="zhipu">智譜AI GLM (免費 - 中文原生 📝)</option>
+                <option value="moonshot">Moonshot (免費額度 🌙)</option>
+                <option value="huggingface">Hugging Face (免費 🤗)</option>
+                <option value="together">Together AI (免費額度 🤝)</option>
+                <option value="gemini">Google Gemini (免費 🔍)</option>
+                <option value="cohere">Cohere (免費 💼)</option>
+                <option value="openai">OpenAI (付費 💰)</option>
               </select>
               <p className="mt-1 text-sm text-gray-500">
                 選擇您要使用的 AI 服務提供商
@@ -204,6 +219,20 @@ export default function SettingsPage() {
               <div className="p-4 bg-green-50 rounded-lg border border-green-200">
                 <h4 className="font-medium text-green-800 mb-2">🎉 免費 API 優勢</h4>
                 <div className="text-sm text-green-700 space-y-2">
+                  {settings.aiProvider === 'deepseek' && (
+                    <>
+                      <p><strong>DeepSeek API 特色：</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-4">
+                        <li>完全免費使用，無需信用卡</li>
+                        <li>中文支援極佳，理解能力強</li>
+                        <li>代碼生成能力突出</li>
+                        <li>DeepSeek-Chat 和 DeepSeek-Coder 模型</li>
+                      </ul>
+                      <p className="text-xs text-green-600">
+                        💡 註冊網址：<a href="https://platform.deepseek.com" target="_blank" className="underline">platform.deepseek.com</a>
+                      </p>
+                    </>
+                  )}
                   {settings.aiProvider === 'groq' && (
                     <>
                       <p><strong>Groq API 特色：</strong></p>
@@ -215,6 +244,62 @@ export default function SettingsPage() {
                       </ul>
                       <p className="text-xs text-green-600">
                         💡 註冊網址：<a href="https://console.groq.com" target="_blank" className="underline">console.groq.com</a>
+                      </p>
+                    </>
+                  )}
+                  {settings.aiProvider === 'zhipu' && (
+                    <>
+                      <p><strong>智譜AI GLM 特色：</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-4">
+                        <li>中文原生模型，理解能力強</li>
+                        <li>每月免費 tokens 額度</li>
+                        <li>GLM-4 和 GLM-3-Turbo 模型</li>
+                        <li>專為中文優化設計</li>
+                      </ul>
+                      <p className="text-xs text-green-600">
+                        💡 註冊網址：<a href="https://open.bigmodel.cn" target="_blank" className="underline">open.bigmodel.cn</a>
+                      </p>
+                    </>
+                  )}
+                  {settings.aiProvider === 'moonshot' && (
+                    <>
+                      <p><strong>Moonshot AI 特色：</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-4">
+                        <li>新用戶免費額度</li>
+                        <li>長文本處理能力強</li>
+                        <li>Moonshot-v1 模型</li>
+                        <li>支援大量上下文</li>
+                      </ul>
+                      <p className="text-xs text-green-600">
+                        💡 註冊網址：<a href="https://platform.moonshot.cn" target="_blank" className="underline">platform.moonshot.cn</a>
+                      </p>
+                    </>
+                  )}
+                  {settings.aiProvider === 'huggingface' && (
+                    <>
+                      <p><strong>Hugging Face API 特色：</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-4">
+                        <li>每月 1000 次免費請求</li>
+                        <li>豐富的開源模型選擇</li>
+                        <li>支援多種語言模型</li>
+                        <li>完全免費，無需信用卡</li>
+                      </ul>
+                      <p className="text-xs text-green-600">
+                        💡 註冊網址：<a href="https://huggingface.co" target="_blank" className="underline">huggingface.co</a>
+                      </p>
+                    </>
+                  )}
+                  {settings.aiProvider === 'together' && (
+                    <>
+                      <p><strong>Together AI 特色：</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-4">
+                        <li>$5 免費 credits</li>
+                        <li>支援多種開源模型</li>
+                        <li>Llama, Mixtral, CodeLlama</li>
+                        <li>速度快，穩定性好</li>
+                      </ul>
+                      <p className="text-xs text-green-600">
+                        💡 註冊網址：<a href="https://api.together.ai" target="_blank" className="underline">api.together.ai</a>
                       </p>
                     </>
                   )}
@@ -333,6 +418,151 @@ export default function SettingsPage() {
                 </div>
                 <p className="mt-1 text-sm text-gray-500">
                   請從 Google AI Studio 取得您的免費 API Key
+                </p>
+              </div>
+            )}
+
+            {/* DeepSeek API Key */}
+            {settings.aiProvider === 'deepseek' && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  DeepSeek API Key
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.deepseekApiKey || ''}
+                    onChange={(e) => handleChange('deepseekApiKey', e.target.value)}
+                    placeholder="請輸入 DeepSeek API Key"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
+                  >
+                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  請從 DeepSeek Platform 取得您的免費 API Key
+                </p>
+              </div>
+            )}
+
+            {/* 智譜AI API Key */}
+            {settings.aiProvider === 'zhipu' && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  智譜AI API Key
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.zhipuApiKey || ''}
+                    onChange={(e) => handleChange('zhipuApiKey', e.target.value)}
+                    placeholder="請輸入智譜AI API Key"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
+                  >
+                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  請從智譜AI開放平台取得您的免費 API Key
+                </p>
+              </div>
+            )}
+
+            {/* Moonshot API Key */}
+            {settings.aiProvider === 'moonshot' && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Moonshot API Key
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.moonshotApiKey || ''}
+                    onChange={(e) => handleChange('moonshotApiKey', e.target.value)}
+                    placeholder="請輸入 Moonshot API Key"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
+                  >
+                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  請從 Moonshot Platform 取得您的 API Key
+                </p>
+              </div>
+            )}
+
+            {/* Hugging Face API Key */}
+            {settings.aiProvider === 'huggingface' && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Hugging Face API Key
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.huggingfaceApiKey || ''}
+                    onChange={(e) => handleChange('huggingfaceApiKey', e.target.value)}
+                    placeholder="請輸入 Hugging Face API Key"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
+                  >
+                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  請從 Hugging Face 取得您的免費 Access Token
+                </p>
+              </div>
+            )}
+
+            {/* Together AI API Key */}
+            {settings.aiProvider === 'together' && (
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Together AI API Key
+                </label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.togetherApiKey || ''}
+                    onChange={(e) => handleChange('togetherApiKey', e.target.value)}
+                    placeholder="請輸入 Together AI API Key"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
+                  >
+                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  請從 Together AI 取得您的 API Key
                 </p>
               </div>
             )}

@@ -3,7 +3,6 @@
 @tailwind utilities;
 
 @import '../styles/animations.css';
-@import '../styles/browser-compatibility.css';
 
 @layer base {
   :root {
@@ -59,6 +58,46 @@
     --chart-3: 0 0% 50%;
     --chart-4: 0 0% 40%;
     --chart-5: 0 0% 30%;
+  }
+
+  /* 瀏覽器相容性修復 - Base Layer */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* 修復 button 的默認樣式 */
+  button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  /* 修復 input 的默認樣式 */
+  input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+  }
+
+  /* 修復 select 的默認樣式 */
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
   }
 }
 
@@ -356,6 +395,224 @@
       linear-gradient(rgba(241, 245, 249, 0.1) 1px, transparent 1px);
     background-size: 400px 400px, 400px 400px, 40px 40px, 40px 40px;
   }
+
+  /* 瀏覽器相容性修復 - Utilities */
+  
+  /* Grid 支持 */
+  .grid {
+    display: -ms-grid;
+    display: grid;
+  }
+  
+  .grid-cols-1 {
+    -ms-grid-columns: 1fr;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
+  
+  .grid-cols-2 {
+    -ms-grid-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  
+  .grid-cols-3 {
+    -ms-grid-columns: 1fr 1fr 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  
+  .grid-cols-4 {
+    -ms-grid-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  
+  .grid-cols-12 {
+    -ms-grid-columns: (1fr)[12];
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  /* Flexbox 支持 */
+  .flex {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+  }
+  
+  .inline-flex {
+    display: -webkit-inline-box;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+  }
+  
+  .flex-row {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+  }
+  
+  .flex-col {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+  }
+  
+  .flex-row-reverse {
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: reverse;
+    -ms-flex-direction: row-reverse;
+    flex-direction: row-reverse;
+  }
+  
+  .flex-col-reverse {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: reverse;
+    -ms-flex-direction: column-reverse;
+    flex-direction: column-reverse;
+  }
+  
+  .flex-1 {
+    -webkit-box-flex: 1;
+    -ms-flex: 1 1 0%;
+    flex: 1 1 0%;
+  }
+  
+  .flex-auto {
+    -webkit-box-flex: 1;
+    -ms-flex: 1 1 auto;
+    flex: 1 1 auto;
+  }
+  
+  .flex-initial {
+    -webkit-box-flex: 0;
+    -ms-flex: 0 1 auto;
+    flex: 0 1 auto;
+  }
+  
+  .flex-none {
+    -webkit-box-flex: 0;
+    -ms-flex: none;
+    flex: none;
+  }
+  
+  .justify-start {
+    -webkit-box-pack: start;
+    -ms-flex-pack: start;
+    justify-content: flex-start;
+  }
+  
+  .justify-end {
+    -webkit-box-pack: end;
+    -ms-flex-pack: end;
+    justify-content: flex-end;
+  }
+  
+  .justify-center {
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+  }
+  
+  .justify-between {
+    -webkit-box-pack: justify;
+    -ms-flex-pack: justify;
+    justify-content: space-between;
+  }
+  
+  .justify-around {
+    -ms-flex-pack: distribute;
+    justify-content: space-around;
+  }
+  
+  .items-start {
+    -webkit-box-align: start;
+    -ms-flex-align: start;
+    align-items: flex-start;
+  }
+  
+  .items-end {
+    -webkit-box-align: end;
+    -ms-flex-align: end;
+    align-items: flex-end;
+  }
+  
+  .items-center {
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+  }
+  
+  .items-stretch {
+    -webkit-box-align: stretch;
+    -ms-flex-align: stretch;
+    align-items: stretch;
+  }
+
+  /* User Select 支持 */
+  .select-none {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  .select-text {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+  
+  .select-all {
+    -webkit-user-select: all;
+    -moz-user-select: all;
+    -ms-user-select: all;
+    user-select: all;
+  }
+  
+  .select-auto {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
+  }
+
+  /* Transform 和 Transition 支持 */
+  .transform {
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    transform: translateZ(0);
+  }
+  
+  .transition {
+    -webkit-transition: all 150ms ease-in-out;
+    -moz-transition: all 150ms ease-in-out;
+    -ms-transition: all 150ms ease-in-out;
+    transition: all 150ms ease-in-out;
+  }
+  
+  .transition-colors {
+    -webkit-transition: color 150ms ease-in-out, background-color 150ms ease-in-out, border-color 150ms ease-in-out;
+    -moz-transition: color 150ms ease-in-out, background-color 150ms ease-in-out, border-color 150ms ease-in-out;
+    -ms-transition: color 150ms ease-in-out, background-color 150ms ease-in-out, border-color 150ms ease-in-out;
+    transition: color 150ms ease-in-out, background-color 150ms ease-in-out, border-color 150ms ease-in-out;
+  }
+
+  /* Backdrop Filter 支持 */
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  
+  .backdrop-blur {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  
+  .backdrop-blur-lg {
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
 }
 
 @layer base {
@@ -364,5 +621,44 @@
   }
   body {
     @apply bg-gradient-silver-elegant text-foreground;
+  }
+}
+
+/* 特殊瀏覽器修復 */
+
+/* IE 特定修復 */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  /* IE10+ specific styles */
+  .flex {
+    display: -ms-flexbox;
+  }
+  
+  .grid {
+    display: -ms-grid;
+  }
+  
+  /* IE Grid layout fixes */
+  .-ms-grid-row-1 { -ms-grid-row: 1; }
+  .-ms-grid-row-2 { -ms-grid-row: 2; }
+  .-ms-grid-row-3 { -ms-grid-row: 3; }
+  .-ms-grid-row-4 { -ms-grid-row: 4; }
+  
+  .-ms-grid-column-1 { -ms-grid-column: 1; }
+  .-ms-grid-column-2 { -ms-grid-column: 2; }
+  .-ms-grid-column-3 { -ms-grid-column: 3; }
+  .-ms-grid-column-4 { -ms-grid-column: 4; }
+}
+
+/* Safari 特定修復 */
+@supports (-webkit-appearance: none) {
+  .input[type="search"] {
+    -webkit-appearance: none;
+  }
+}
+
+/* Firefox 特定修復 */
+@-moz-document url-prefix() {
+  .scrollbar-hide {
+    scrollbar-width: none;
   }
 } 

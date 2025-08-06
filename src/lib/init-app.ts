@@ -15,8 +15,9 @@ export async function initializeApp() {
     
     // 動態導入避免在客戶端執行
     if (typeof window === 'undefined') {
-      const { startupService } = await import('./startup-service')
-      await startupService.initialize()
+      const { getAutoServiceManager } = await import('./auto-service-manager')
+      const manager = getAutoServiceManager()
+      await manager.start()
       isInitialized = true
       console.log('🎉 自動化服務已在應用啟動時成功初始化！')
     }

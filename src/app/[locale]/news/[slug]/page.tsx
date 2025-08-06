@@ -143,6 +143,25 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
           {/* 主要內容 */}
           <div className="lg:col-span-3">
             <article className="bg-white rounded-lg shadow-lg overflow-hidden">
+              {/* 新聞封面圖片 */}
+              <div className="relative h-64 md:h-80 bg-gradient-to-br from-blue-500 to-blue-600">
+                <img
+                  src={article.coverImage || '/images/default-news.svg'}
+                  alt={article.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/images/default-news.svg';
+                  }}
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-30"></div>
+                <div className="absolute bottom-4 left-4 right-4">
+                  <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm">
+                    {article.sourceName || 'DrCarCold 新聞'}
+                  </span>
+                </div>
+              </div>
+              
               {/* 文章內容 */}
               <div className="p-6 lg:p-8">
                 {/* 標題 */}

@@ -303,3 +303,57 @@ model CrawlLog {
   @@index([createdAt])
   @@index([success])
 }
+
+model Contact {
+  id            String    @id @default(cuid())
+  name          String
+  email         String
+  phone         String?
+  company       String?
+  subject       String
+  message       String
+  customerType  String?   // 客戶類型：個人、公司、經銷商等
+  interestedProducts String? // 感興趣的產品
+  source        String    @default("website") // 來源：website, phone, email等
+  status        String    @default("new") // 狀態：new, contacted, quoted, closed
+  priority      String    @default("normal") // 優先級：low, normal, high, urgent
+  assignedTo    String?   // 分配給哪位員工處理
+  notes         String?   // 內部備註
+  followUpDate  DateTime? // 跟進日期
+  lastContactDate DateTime? // 最後聯絡日期
+  isRead        Boolean   @default(false) // 是否已讀
+  isReplied     Boolean   @default(false) // 是否已回覆
+  tags          String    @default("[]") // 標籤，JSON格式
+  ipAddress     String?   // 提交者IP
+  userAgent     String?   // 瀏覽器信息
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([status])
+  @@index([priority])
+  @@index([isRead])
+  @@index([createdAt])
+  @@index([source])
+}
+
+model Vehicle {
+  id            String    @id @default(cuid())
+  brand         String    // 車廠品牌
+  model         String    // 車型
+  info          String?   // 額外資訊
+  year          String?   // 年份
+  refrigerant   String?   // 冷媒類型 (R134a, R1234yf等)
+  amount        String?   // 冷媒量 (g)
+  oil           String?   // 冷凍油量 (cc)
+  source        String    @default("import") // 數據來源
+  isActive      Boolean   @default(true)  // 是否啟用
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([brand])
+  @@index([model])
+  @@index([refrigerant])
+  @@index([year])
+  @@index([source])
+  @@index([isActive])
+}

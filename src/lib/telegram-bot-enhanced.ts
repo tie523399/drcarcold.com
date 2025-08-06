@@ -3,8 +3,53 @@
 
 import { prisma } from '@/lib/prisma'
 import { AutoNewsCrawler } from '@/lib/auto-news-crawler'
-import { sendTelegramMessage } from '@/lib/telegram-bot'
+// 移除對已刪除telegram-bot的引用
 import { MonitoringService } from '@/lib/monitoring-service'
+import * as cheerio from 'cheerio'
+
+// 簡單的文章爬取函數
+async function simpleScrapeArticle(url: string): Promise<any> {
+  const response = await fetch(url)
+  const html = await response.text()
+  const $ = cheerio.load(html)
+  
+  // 基本的文章內容提取
+  const title = $('h1').first().text() || $('title').text() || '無標題'
+  const content = $('article, .content, .post-content, .entry-content, main p').text().slice(0, 2000) || '無內容'
+  const author = $('meta[name="author"]').attr('content') || $('.author').text() || '未知作者'
+  
+  return {
+    title: title.trim(),
+    content: content.trim(),
+    author: author.trim(),
+    url,
+    tags: []
+  }
+}
+
+// Telegram 消息發送函數
+export async function sendTelegramMessage(chatId: string, message: string, botToken?: string): Promise<void> {
+  try {
+    const token = botToken || process.env.TELEGRAM_BOT_TOKEN
+    if (!token) {
+      console.error('Telegram Bot Token 未設置')
+      return
+    }
+
+    const url = `https://api.telegram.org/bot${token}/sendMessage`
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'Markdown'
+      })
+    })
+  } catch (error) {
+    console.error('發送 Telegram 消息失敗:', error)
+  }
+}
 
 // Bot 指令列表
 const COMMANDS = {
@@ -354,7 +399,7 @@ export class TelegramBotController {
     await this.sendMessage('⏳ 正在處理文章，請稍候...')
     
     try {
-      const { simpleScrapeArticle } = await import('./simple-scraper')
+      // 使用本地的 simpleScrapeArticle 函數
       const articleData = await simpleScrapeArticle(url)
       
       // 處理文章...
@@ -541,7 +586,6 @@ export class TelegramBotController {
     await this.sendMessage('⏳ 正在分析文章品質...')
     
     try {
-      const { simpleScrapeArticle } = await import('./simple-scraper')
       const { ContentQualityChecker } = await import('./content-quality-checker')
       
       const articleData = await simpleScrapeArticle(url)

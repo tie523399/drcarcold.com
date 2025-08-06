@@ -1,5 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { simpleScrapeArticle } from '@/lib/simple-scraper'
+import * as cheerio from 'cheerio'
+
+// 簡單的文章爬取函數
+async function simpleScrapeArticle(url: string): Promise<any> {
+  const response = await fetch(url)
+  const html = await response.text()
+  const $ = cheerio.load(html)
+  
+  // 基本的文章內容提取
+  const title = $('h1').first().text() || $('title').text() || '無標題'
+  const content = $('article, .content, .post-content, .entry-content, main p').text().slice(0, 2000) || '無內容'
+  const author = $('meta[name="author"]').attr('content') || $('.author').text() || '未知作者'
+  
+  return {
+    title: title.trim(),
+    content: content.trim(),
+    author: author.trim(),
+    url,
+    tags: []
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {

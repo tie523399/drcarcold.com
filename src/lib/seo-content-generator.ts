@@ -1,6 +1,7 @@
 // SEO 內容自動生成服務
 import { prisma } from '@/lib/prisma'
 import { getAIProvider } from '@/lib/ai-service'
+import { generateNewsImages } from '@/lib/news-image-generator'
 
 interface SEOArticleTopic {
   title: string
@@ -176,14 +177,27 @@ SEO 關鍵字（請自然地融入文章中）：${topic.keywords.join('、')}
     return description
   }
 
-  // 生成 URL slug
+  // 生成 URL 友好的 slug
   private generateSlug(title: string): string {
-    return title
+    if (!title) return `seo-article-${Date.now()}`
+    
+    // 只保留英文字母、數字，移除所有其他字符
+    let slug = title
       .toLowerCase()
-      .replace(/[^\u4e00-\u9fff\w\s-]/g, '') // 保留中文、英文、數字、空格、連字符
-      .replace(/\s+/g, '-') // 空格轉連字符
-      .replace(/-+/g, '-') // 多個連字符合併
-      .trim()
+      .replace(/[^a-z0-9\s]/g, '') // 只保留英文字母、數字和空格
+      .replace(/\s+/g, '-') // 將空格轉為連字符
+      .replace(/-+/g, '-') // 合並多個連字符
+      .replace(/^-+|-+$/g, '') // 移除開頭和結尾的連字符
+    
+    // 如果清理後為空或太短，使用 SEO 前綴和時間戳
+    if (!slug || slug.length < 3) {
+      slug = `seo-article-${Date.now()}`
+    } else {
+      // 限制長度並添加時間戳確保唯一性
+      slug = slug.substring(0, 30) + '-seo-' + Date.now()
+    }
+    
+    return slug.replace(/-+$/, '') // 確保不以連字符結尾
   }
 
   // 檢查是否存在重複文章
@@ -254,6 +268,14 @@ SEO 關鍵字（請自然地融入文章中）：${topic.keywords.join('、')}
     slug: string
   }) {
     try {
+      // 生成動態圖片
+      const imageData = generateNewsImages(
+        article.title,
+        article.content,
+        ['教育性內容', 'SEO優化', ...article.keywords],
+        'AI Generated - SEO'
+      )
+      
       const news = await prisma.news.create({
         data: {
           title: article.title,
@@ -263,7 +285,8 @@ SEO 關鍵字（請自然地融入文章中）：${topic.keywords.join('、')}
           sourceName: 'AI Generated - SEO',
           sourceUrl: '',
           author: 'DrCarCold 編輯部',
-          coverImage: '/images/logo.png',
+          coverImage: imageData.coverImage,
+          ogImage: imageData.ogImage,
           isPublished: true,
           publishedAt: new Date(),
           seoKeywords: article.keywords.join(', '),

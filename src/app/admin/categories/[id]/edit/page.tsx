@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import ImageUpload from '@/components/ui/image-upload'
+import MediaUpload from '@/components/ui/media-upload'
 import { ArrowLeft, Save } from 'lucide-react'
 
 interface CategoryFormData {
@@ -195,11 +195,13 @@ export default function EditCategoryPage() {
 
               <div>
                 <label className="block text-sm font-medium mb-2">分類圖片</label>
-                <ImageUpload
+                <MediaUpload
                   uploadType="categories"
                   maxFiles={1}
                   onUpload={setUploadedImages}
-                  initialImages={uploadedImages}
+                  initialMedia={uploadedImages}
+                  acceptVideo={false}
+                  acceptGif={false}
                 />
                 <p className="mt-1 text-sm text-gray-500">
                   建議尺寸：400x400 像素，用於分類列表顯示

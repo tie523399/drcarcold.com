@@ -40,6 +40,7 @@ export default function RefrigerantLookupClient() {
   const [results, setResults] = useState<VehicleModel[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [hasSearched, setHasSearched] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState('')
 
   // 載入所有品牌
   useEffect(() => {
@@ -59,12 +60,24 @@ export default function RefrigerantLookupClient() {
 
     try {
       const params = new URLSearchParams()
-      if (selectedBrand) params.append('brandId', selectedBrand)
+      if (selectedBrand) {
+        // 使用品牌名稱而非ID進行搜尋
+        const selectedBrandData = brands.find(b => b.id === selectedBrand)
+        if (selectedBrandData) {
+          params.append('brand', selectedBrandData.name)
+        }
+      }
       if (searchTerm.trim()) params.append('search', searchTerm.trim())
+      if (selectedCategory) params.append('category', selectedCategory)
 
-      const response = await fetch(`/api/vehicle-models/search?${params}`)
+      const response = await fetch(`/api/refrigerant-lookup?${params}`)
       const data = await response.json()
-      setResults(data)
+      
+      if (data.success) {
+        setResults(data.data)
+      } else {
+        setResults([])
+      }
     } catch (error) {
       console.error('Search failed:', error)
       setResults([])
@@ -97,6 +110,33 @@ export default function RefrigerantLookupClient() {
     }
   ]
 
+  const handleCategoryClick = async (categoryId: string) => {
+    setSelectedCategory(categoryId)
+    setSelectedBrand('')
+    setSearchTerm('')
+    setIsLoading(true)
+    setHasSearched(true)
+
+    try {
+      const params = new URLSearchParams()
+      params.append('category', categoryId)
+
+      const response = await fetch(`/api/refrigerant-lookup?${params}`)
+      const data = await response.json()
+      
+      if (data.success) {
+        setResults(data.data)
+      } else {
+        setResults([])
+      }
+    } catch (error) {
+      console.error('Category search failed:', error)
+      setResults([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-8">
       {/* 分類卡片 */}
@@ -104,7 +144,13 @@ export default function RefrigerantLookupClient() {
         {categories.map((category) => {
           const Icon = category.icon
           return (
-            <Card key={category.id} className="group hover:shadow-lg transition-all duration-300 border-0 overflow-hidden">
+            <Card 
+              key={category.id} 
+              className={`group hover:shadow-lg transition-all duration-300 border-0 overflow-hidden cursor-pointer ${
+                selectedCategory === category.id ? 'ring-2 ring-blue-500' : ''
+              }`}
+              onClick={() => handleCategoryClick(category.id)}
+            >
               <div className={`h-2 bg-gradient-to-r ${category.gradient}`} />
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-3 mb-2">
@@ -205,26 +251,22 @@ export default function RefrigerantLookupClient() {
                     </tr>
                   </thead>
                   <tbody>
-                    {results.map((model) => (
-                      <tr key={model.id} className="border-b hover:bg-gray-50">
+                    {results.map((vehicle) => (
+                      <tr key={vehicle.id} className="border-b hover:bg-gray-50">
                         <td className="p-3">
                           <div>
-                            <div className="font-medium">
-                              {locale === 'zh' ? model.modelName : model.modelNameEn}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {locale === 'zh' ? model.brand.name : model.brand.nameEn}
-                            </div>
+                            <div className="font-medium">{vehicle.model}</div>
+                            <div className="text-sm text-gray-500">{vehicle.brand}</div>
                           </div>
                         </td>
-                        <td className="p-3">{model.year}</td>
-                        <td className="p-3">{model.engineType}</td>
+                        <td className="p-3">{vehicle.year}</td>
+                        <td className="p-3">{vehicle.engineType || '-'}</td>
                         <td className="p-3">
-                          <Badge variant="outline">{model.refrigerantType}</Badge>
+                          <Badge variant="outline">{vehicle.refrigerantType || 'R134a'}</Badge>
                         </td>
-                        <td className="p-3 font-medium">{model.refrigerantAmount}</td>
-                        <td className="p-3">{model.refrigerantOil}</td>
-                        <td className="p-3">{model.notes || '-'}</td>
+                        <td className="p-3 font-medium">{vehicle.refrigerantAmount || '-'}</td>
+                        <td className="p-3">{vehicle.oilType ? `${vehicle.oilType}${vehicle.oilAmount ? ` ${vehicle.oilAmount}` : ''}` : '-'}</td>
+                        <td className="p-3">{vehicle.notes || '-'}</td>
                       </tr>
                     ))}
                   </tbody>

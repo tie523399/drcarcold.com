@@ -26,11 +26,15 @@ export class AutoStartupService {
 
   async start(): Promise<void> {
     if (this.isRunning) {
-      console.log('自動服務已經在運行中...')
-      return
+      console.log('⚠️ 自動服務已在運行中，先停止現有服務...')
+      await this.stop()
     }
 
     console.log('🚀 啟動自動服務...')
+    
+    // 確保所有定時器都已清理
+    this.clearAllIntervals()
+    
     this.isRunning = true
 
     try {
@@ -50,6 +54,7 @@ export class AutoStartupService {
     } catch (error) {
       console.error('❌ 啟動自動服務失敗:', error)
       this.isRunning = false
+      await this.stop() // 確保清理
       throw error
     }
   }
@@ -58,22 +63,29 @@ export class AutoStartupService {
     console.log('🛑 停止自動服務...')
     this.isRunning = false
 
+    this.clearAllIntervals()
+
+    console.log('✅ 所有自動服務已停止')
+  }
+
+  private clearAllIntervals(): void {
     if (this.crawlerInterval) {
       clearInterval(this.crawlerInterval)
       this.crawlerInterval = null
+      console.log('🧹 清理爬蟲定時器')
     }
 
     if (this.seoInterval) {
       clearInterval(this.seoInterval)
       this.seoInterval = null
+      console.log('🧹 清理SEO定時器')
     }
 
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval)
       this.cleanupInterval = null
+      console.log('🧹 清理文章清理定時器')
     }
-
-    console.log('✅ 所有自動服務已停止')
   }
 
   private async loadSettings(): Promise<void> {
@@ -126,6 +138,12 @@ export class AutoStartupService {
     const intervalMinutes = this.settings.crawlerInterval
     console.log(`📰 啟動自動爬蟲服務 - 間隔: ${intervalMinutes} 分鐘`)
     
+    // 確保沒有現有的爬蟲定時器
+    if (this.crawlerInterval) {
+      clearInterval(this.crawlerInterval)
+      this.crawlerInterval = null
+    }
+    
     // 立即執行一次
     await this.runCrawler()
     
@@ -141,17 +159,25 @@ export class AutoStartupService {
     const intervalHours = this.settings.seoGeneratorInterval
     console.log(`🎯 啟動SEO文章生成服務 - 間隔: ${intervalHours} 小時`)
     
+    // 確保沒有現有的SEO定時器
+    if (this.seoInterval) {
+      clearInterval(this.seoInterval)
+      this.seoInterval = null
+    }
+    
     // 延遲10分鐘後開始，避免與爬蟲衝突
     setTimeout(async () => {
       if (this.isRunning) {
         await this.runSEOGenerator()
         
         // 設定定時執行 - 使用後台設定的時間間隔
-        this.seoInterval = setInterval(async () => {
-          if (this.isRunning) {
-            await this.runSEOGenerator()
-          }
-        }, intervalHours * 60 * 60 * 1000) // 轉換為毫秒
+        if (!this.seoInterval) {
+          this.seoInterval = setInterval(async () => {
+            if (this.isRunning) {
+              await this.runSEOGenerator()
+            }
+          }, intervalHours * 60 * 60 * 1000) // 轉換為毫秒
+        }
       }
     }, 10 * 60 * 1000) // 延遲10分鐘
   }
@@ -160,17 +186,25 @@ export class AutoStartupService {
     const intervalHours = this.settings.cleanupInterval
     console.log(`🧹 啟動文章清理服務 - 間隔: ${intervalHours} 小時`)
     
+    // 確保沒有現有的清理定時器
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval)
+      this.cleanupInterval = null
+    }
+    
     // 延遲5分鐘後開始
     setTimeout(async () => {
       if (this.isRunning) {
         await this.cleanupArticles()
         
         // 設定定時執行 - 使用後台設定的時間間隔
-        this.cleanupInterval = setInterval(async () => {
-          if (this.isRunning) {
-            await this.cleanupArticles()
-          }
-        }, intervalHours * 60 * 60 * 1000) // 轉換為毫秒
+        if (!this.cleanupInterval) {
+          this.cleanupInterval = setInterval(async () => {
+            if (this.isRunning) {
+              await this.cleanupArticles()
+            }
+          }, intervalHours * 60 * 60 * 1000) // 轉換為毫秒
+        }
       }
     }, 5 * 60 * 1000) // 延遲5分鐘
   }
