@@ -4,10 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_OPTIONS='--no-deprecation' next build",
     "start": "next start",
     "lint": "next lint",
-    "postbuild": "npx prisma generate",
+    "postbuild": "echo 'Build completed successfully'",
     "deploy:check": "node scripts/pre-deploy-check.js",
     "deploy:railway": "node scripts/deploy-to-railway.js",
     "test:final": "node scripts/final-test.js",
