@@ -1,20 +1,11 @@
-[phases.setup]
-nixPkgs = ["nodejs_18"]
-
 [phases.install]
-cmds = ["npm ci"]
+cmds = ["npm install --force"]
 
 [phases.build]
 cmds = [
   "npx prisma generate",
-  "DATABASE_URL=file:./build.db npx prisma db push || echo 'Build database ready'",
   "npm run build"
 ]
 
 [phases.start]
-cmd = "npx prisma db push && npm start"
-
-[variables]
-NODE_ENV = "production"
-DATABASE_URL = "file:./prod.db"
-SKIP_ENV_VALIDATION = "true"
+cmd = "npm start"
