@@ -99,7 +99,6 @@ prisma/migrations/
 *.ps1
 *.sh
 *.csv
-*.json
 *.xlsx
 *.md
 docs/
