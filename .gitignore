@@ -49,7 +49,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+# lib/ - 已註釋，因為會忽略 src/lib
 lib64/
 parts/
 sdist/
