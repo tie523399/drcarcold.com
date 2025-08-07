@@ -1,12 +1,8 @@
-# Nixpacks 配置文件
 [phases.setup]
 nixPkgs = ["nodejs_18"]
 
 [phases.install]
-cmds = [
-  "npm install --force",
-  "npx prisma generate"
-]
+cmds = ["npm install --force"]
 
 [phases.build]
 cmds = ["npm run build"]
