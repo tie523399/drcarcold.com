@@ -31,6 +31,10 @@ interface Settings {
   autoSeoEnabled?: boolean
   seoGenerationSchedule?: string
   seoDailyCount?: number
+  // 新增自動故障切換功能
+  aiAutoFallback?: boolean
+  aiProviderPriority?: string[]
+  aiFailoverRetries?: number
 }
 
 export default function SettingsPage() {
@@ -60,6 +64,10 @@ export default function SettingsPage() {
     autoSeoEnabled: false,
     seoGenerationSchedule: '10:00',
     seoDailyCount: 1,
+    // 新增自動故障切換設定
+    aiAutoFallback: true,
+    aiProviderPriority: ['deepseek', 'groq', 'gemini', 'cohere'],
+    aiFailoverRetries: 3,
   })
 
   // 載入設定
@@ -109,6 +117,54 @@ export default function SettingsPage() {
       ...prev,
       [key]: value,
     }))
+  }
+
+  const testAIConnections = async () => {
+    setIsSaving(true)
+    try {
+      const response = await fetch('/api/ai-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'test-all' }),
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        alert(`AI連接測試完成!\n\n${data.message}`)
+      } else {
+        alert(`測試失敗: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('AI測試失敗:', error)
+      alert('AI連接測試失敗')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const resetAIFailures = async () => {
+    setIsSaving(true)
+    try {
+      const response = await fetch('/api/ai-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset-failures' }),
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        alert('AI失敗計數已重置')
+      } else {
+        alert(`重置失敗: ${data.error}`)
+      }
+    } catch (error) {
+      console.error('重置失敗:', error)
+      alert('重置失敗計數失敗')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   if (isLoading) {
@@ -177,258 +233,159 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* OpenAI API 設定 */}
+        {/* AI 自動故障切換設定 */}
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-blue-600" />
+              🤖 智能AI自動切換系統
+            </CardTitle>
+            <CardDescription className="text-blue-700">
+              配置多個AI提供商，系統將自動嘗試不同的AI服務，確保100%可用性且完全免費！
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* 自動故障切換開關 */}
+            <div className="p-4 bg-white rounded-lg border border-blue-200">
+              <div className="flex items-center gap-3 mb-3">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={settings.aiAutoFallback || false}
+                    onChange={(e) => handleChange('aiAutoFallback', e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm font-medium text-blue-900">🚀 啟用智能自動切換</span>
+                </label>
+              </div>
+              <p className="text-sm text-blue-700 ml-6">
+                啟用後，當一個AI服務失敗時，系統會自動嘗試下一個可用的AI服務，確保服務不中斷
+              </p>
+              
+              {settings.aiAutoFallback && (
+                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <h4 className="font-medium text-green-800 mb-2">💡 智能切換優勢：</h4>
+                  <ul className="text-sm text-green-700 space-y-1 list-disc list-inside">
+                    <li>充分利用各平台免費額度，節省成本</li>
+                    <li>一個API失敗自動切換到下一個，保證服務可用性</li>
+                    <li>智能重試機制，減少因網路問題導致的失敗</li>
+                    <li>支援自定義優先順序，優先使用您偏好的AI服務</li>
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* 故障切換設定 */}
+            {settings.aiAutoFallback && (
+              <div className="p-4 bg-white rounded-lg border border-gray-200">
+                <h4 className="font-medium text-gray-800 mb-3">⚙️ 切換參數設定</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      重試次數
+                    </label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={settings.aiFailoverRetries || 3}
+                      onChange={(e) => handleChange('aiFailoverRetries', parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      每個AI服務失敗時的重試次數（建議2-3次）
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 多AI提供商API Key設定 */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
-              AI 文章改寫設定
+              🔑 多AI提供商API Key設定
             </CardTitle>
             <CardDescription>
-              選擇 AI 服務提供商並設定 API Key 來啟用 AI 自動改寫文章功能
+              {settings.aiAutoFallback 
+                ? "設定多個AI服務的API Key，系統將按優先順序自動使用" 
+                : "選擇並設定您要使用的AI服務提供商API Key"
+              }
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* AI 服務提供商選擇 */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                AI 服務提供商
-              </label>
-              <select
-                value={settings.aiProvider || 'deepseek'}
-                onChange={(e) => handleChange('aiProvider', e.target.value)}
-                className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="deepseek">DeepSeek (完全免費 - 強烈推薦 🇨🇳)</option>
-                <option value="groq">Groq (免費 - 速度快 ⚡)</option>
-                <option value="zhipu">智譜AI GLM (免費 - 中文原生 📝)</option>
-                <option value="moonshot">Moonshot (免費額度 🌙)</option>
-                <option value="huggingface">Hugging Face (免費 🤗)</option>
-                <option value="together">Together AI (免費額度 🤝)</option>
-                <option value="gemini">Google Gemini (免費 🔍)</option>
-                <option value="cohere">Cohere (免費 💼)</option>
-                <option value="openai">OpenAI (付費 💰)</option>
-              </select>
-              <p className="mt-1 text-sm text-gray-500">
-                選擇您要使用的 AI 服務提供商
-              </p>
-            </div>
-
-            {/* 免費 API 說明 */}
-            {settings.aiProvider !== 'openai' && (
-              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                <h4 className="font-medium text-green-800 mb-2">🎉 免費 API 優勢</h4>
-                <div className="text-sm text-green-700 space-y-2">
-                  {settings.aiProvider === 'deepseek' && (
-                    <>
-                      <p><strong>DeepSeek API 特色：</strong></p>
-                      <ul className="list-disc list-inside space-y-1 ml-4">
-                        <li>完全免費使用，無需信用卡</li>
-                        <li>中文支援極佳，理解能力強</li>
-                        <li>代碼生成能力突出</li>
-                        <li>DeepSeek-Chat 和 DeepSeek-Coder 模型</li>
-                      </ul>
-                      <p className="text-xs text-green-600">
-                        💡 註冊網址：<a href="https://platform.deepseek.com" target="_blank" className="underline">platform.deepseek.com</a>
-                      </p>
-                    </>
-                  )}
-                  {settings.aiProvider === 'groq' && (
-                    <>
-                      <p><strong>Groq API 特色：</strong></p>
-                      <ul className="list-disc list-inside space-y-1 ml-4">
-                        <li>每天 14,400 次免費請求</li>
-                        <li>極快的響應速度</li>
-                        <li>優秀的中文支援</li>
-                        <li>支援 Llama 3.1 等先進模型</li>
-                      </ul>
-                      <p className="text-xs text-green-600">
-                        💡 註冊網址：<a href="https://console.groq.com" target="_blank" className="underline">console.groq.com</a>
-                      </p>
-                    </>
-                  )}
-                  {settings.aiProvider === 'zhipu' && (
-                    <>
-                      <p><strong>智譜AI GLM 特色：</strong></p>
-                      <ul className="list-disc list-inside space-y-1 ml-4">
-                        <li>中文原生模型，理解能力強</li>
-                        <li>每月免費 tokens 額度</li>
-                        <li>GLM-4 和 GLM-3-Turbo 模型</li>
-                        <li>專為中文優化設計</li>
-                      </ul>
-                      <p className="text-xs text-green-600">
-                        💡 註冊網址：<a href="https://open.bigmodel.cn" target="_blank" className="underline">open.bigmodel.cn</a>
-                      </p>
-                    </>
-                  )}
-                  {settings.aiProvider === 'moonshot' && (
-                    <>
-                      <p><strong>Moonshot AI 特色：</strong></p>
-                      <ul className="list-disc list-inside space-y-1 ml-4">
-                        <li>新用戶免費額度</li>
-                        <li>長文本處理能力強</li>
-                        <li>Moonshot-v1 模型</li>
-                        <li>支援大量上下文</li>
-                      </ul>
-                      <p className="text-xs text-green-600">
-                        💡 註冊網址：<a href="https://platform.moonshot.cn" target="_blank" className="underline">platform.moonshot.cn</a>
-                      </p>
-                    </>
-                  )}
-                  {settings.aiProvider === 'huggingface' && (
-                    <>
-                      <p><strong>Hugging Face API 特色：</strong></p>
-                      <ul className="list-disc list-inside space-y-1 ml-4">
-                        <li>每月 1000 次免費請求</li>
-                        <li>豐富的開源模型選擇</li>
-                        <li>支援多種語言模型</li>
-                        <li>完全免費，無需信用卡</li>
-                      </ul>
-                      <p className="text-xs text-green-600">
-                        💡 註冊網址：<a href="https://huggingface.co" target="_blank" className="underline">huggingface.co</a>
-                      </p>
-                    </>
-                  )}
-                  {settings.aiProvider === 'together' && (
-                    <>
-                      <p><strong>Together AI 特色：</strong></p>
-                      <ul className="list-disc list-inside space-y-1 ml-4">
-                        <li>$5 免費 credits</li>
-                        <li>支援多種開源模型</li>
-                        <li>Llama, Mixtral, CodeLlama</li>
-                        <li>速度快，穩定性好</li>
-                      </ul>
-                      <p className="text-xs text-green-600">
-                        💡 註冊網址：<a href="https://api.together.ai" target="_blank" className="underline">api.together.ai</a>
-                      </p>
-                    </>
-                  )}
-                  {settings.aiProvider === 'gemini' && (
-                    <>
-                      <p><strong>Google Gemini API 特色：</strong></p>
-                      <ul className="list-disc list-inside space-y-1 ml-4">
-                        <li>每分鐘 15 次免費請求</li>
-                        <li>Google 最新 AI 技術</li>
-                        <li>優秀的多語言支援</li>
-                        <li>Gemini 1.5 Flash 模型</li>
-                      </ul>
-                      <p className="text-xs text-green-600">
-                        💡 註冊網址：<a href="https://ai.google.dev" target="_blank" className="underline">ai.google.dev</a>
-                      </p>
-                    </>
-                  )}
-                  {settings.aiProvider === 'cohere' && (
-                    <>
-                      <p><strong>Cohere API 特色：</strong></p>
-                      <ul className="list-disc list-inside space-y-1 ml-4">
-                        <li>每月 1000 次免費請求</li>
-                        <li>專為文本生成優化</li>
-                        <li>Command R+ 模型</li>
-                        <li>企業級 AI 服務</li>
-                      </ul>
-                      <p className="text-xs text-green-600">
-                        💡 註冊網址：<a href="https://dashboard.cohere.ai" target="_blank" className="underline">dashboard.cohere.ai</a>
-                      </p>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* OpenAI API Key */}
-            {settings.aiProvider === 'openai' && (
+          <CardContent className="space-y-6">
+            
+            {!settings.aiAutoFallback && (
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  OpenAI API Key
+                  主要AI服務提供商
                 </label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type={showOpenAIKey ? 'text' : 'password'}
-                    value={settings.openaiApiKey || ''}
-                    onChange={(e) => handleChange('openaiApiKey', e.target.value)}
-                    placeholder="請輸入 OpenAI API Key"
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
-                  >
-                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
+                <select
+                  value={settings.aiProvider || 'deepseek'}
+                  onChange={(e) => handleChange('aiProvider', e.target.value)}
+                  className="flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option value="deepseek">DeepSeek (完全免費 - 強烈推薦 🇨🇳)</option>
+                  <option value="groq">Groq (免費 - 速度快 ⚡)</option>
+                  <option value="zhipu">智譜AI GLM (免費 - 中文原生 📝)</option>
+                  <option value="moonshot">Moonshot (免費額度 🌙)</option>
+                  <option value="huggingface">Hugging Face (免費 🤗)</option>
+                  <option value="together">Together AI (免費額度 🤝)</option>
+                  <option value="gemini">Google Gemini (免費 🔍)</option>
+                  <option value="cohere">Cohere (免費 💼)</option>
+                  <option value="openai">OpenAI (付費 💰)</option>
+                </select>
                 <p className="mt-1 text-sm text-gray-500">
-                  請從 OpenAI Platform 取得您的 API Key
+                  選擇您要使用的主要AI服務提供商
                 </p>
               </div>
             )}
 
-            {/* Groq API Key */}
-            {settings.aiProvider === 'groq' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Groq API Key
-                </label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type={showOpenAIKey ? 'text' : 'password'}
-                    value={settings.groqApiKey || ''}
-                    onChange={(e) => handleChange('groqApiKey', e.target.value)}
-                    placeholder="請輸入 Groq API Key"
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
-                  >
-                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+            {/* 智能切換說明 */}
+            {settings.aiAutoFallback ? (
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-medium text-blue-800 mb-2">🤖 智能切換模式已啟用</h4>
+                <div className="text-sm text-blue-700 space-y-2">
+                  <p><strong>系統將按以下順序自動嘗試：</strong></p>
+                  <ol className="list-decimal list-inside space-y-1 ml-4">
+                    <li>🇨🇳 <strong>DeepSeek</strong> - 完全免費，中文支援最佳</li>
+                    <li>⚡ <strong>Groq</strong> - 每天14,400次免費，速度最快</li>
+                    <li>🔍 <strong>Gemini</strong> - Google技術，每分鐘15次免費</li>
+                    <li>💼 <strong>Cohere</strong> - 每月1000次免費</li>
+                    <li>💰 <strong>OpenAI</strong> - 付費備用（如有設定）</li>
+                  </ol>
+                  <div className="mt-3 p-2 bg-green-100 rounded">
+                    <p className="text-green-800 text-xs">
+                      💡 <strong>完全免費策略：</strong>只設定前4個免費服務即可實現無限制使用！
+                    </p>
+                  </div>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  請從 Groq Console 取得您的免費 API Key
+              </div>
+            ) : (
+              <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                <h4 className="font-medium text-yellow-800 mb-2">⚠️ 單一提供商模式</h4>
+                <p className="text-sm text-yellow-700">
+                  目前只使用選定的AI服務。建議啟用「智能自動切換」以獲得更好的可用性和免費額度利用。
                 </p>
               </div>
             )}
 
-            {/* Gemini API Key */}
-            {settings.aiProvider === 'gemini' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Google Gemini API Key
-                </label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type={showOpenAIKey ? 'text' : 'password'}
-                    value={settings.geminiApiKey || ''}
-                    onChange={(e) => handleChange('geminiApiKey', e.target.value)}
-                    placeholder="請輸入 Gemini API Key"
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
-                  >
-                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+            {/* 免費AI服務API Key設定 */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-800">🎉 免費AI服務 (推薦)</h4>
+              
+              {/* DeepSeek API Key */}
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🇨🇳</span>
+                  <label className="block text-sm font-medium">
+                    DeepSeek API Key (完全免費 - 首選)
+                  </label>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  請從 Google AI Studio 取得您的免費 API Key
-                </p>
-              </div>
-            )}
-
-            {/* DeepSeek API Key */}
-            {settings.aiProvider === 'deepseek' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  DeepSeek API Key
-                </label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-2">
                   <Input
                     type={showOpenAIKey ? 'text' : 'password'}
                     value={settings.deepseekApiKey || ''}
@@ -445,24 +402,26 @@ export default function SettingsPage() {
                     {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  請從 DeepSeek Platform 取得您的免費 API Key
+                <p className="text-xs text-green-700">
+                  註冊：<a href="https://platform.deepseek.com" target="_blank" className="underline">platform.deepseek.com</a> 
+                  · 完全免費，中文支援極佳
                 </p>
               </div>
-            )}
 
-            {/* 智譜AI API Key */}
-            {settings.aiProvider === 'zhipu' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  智譜AI API Key
-                </label>
-                <div className="flex items-center gap-2">
+              {/* Groq API Key */}
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">⚡</span>
+                  <label className="block text-sm font-medium">
+                    Groq API Key (速度最快)
+                  </label>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
                   <Input
                     type={showOpenAIKey ? 'text' : 'password'}
-                    value={settings.zhipuApiKey || ''}
-                    onChange={(e) => handleChange('zhipuApiKey', e.target.value)}
-                    placeholder="請輸入智譜AI API Key"
+                    value={settings.groqApiKey || ''}
+                    onChange={(e) => handleChange('groqApiKey', e.target.value)}
+                    placeholder="請輸入 Groq API Key"
                     className="flex-1"
                   />
                   <Button
@@ -474,24 +433,26 @@ export default function SettingsPage() {
                     {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  請從智譜AI開放平台取得您的免費 API Key
+                <p className="text-xs text-blue-700">
+                  註冊：<a href="https://console.groq.com" target="_blank" className="underline">console.groq.com</a> 
+                  · 每天14,400次免費請求
                 </p>
               </div>
-            )}
 
-            {/* Moonshot API Key */}
-            {settings.aiProvider === 'moonshot' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Moonshot API Key
-                </label>
-                <div className="flex items-center gap-2">
+              {/* Gemini API Key */}
+              <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">🔍</span>
+                  <label className="block text-sm font-medium">
+                    Google Gemini API Key
+                  </label>
+                </div>
+                <div className="flex items-center gap-2 mb-2">
                   <Input
                     type={showOpenAIKey ? 'text' : 'password'}
-                    value={settings.moonshotApiKey || ''}
-                    onChange={(e) => handleChange('moonshotApiKey', e.target.value)}
-                    placeholder="請輸入 Moonshot API Key"
+                    value={settings.geminiApiKey || ''}
+                    onChange={(e) => handleChange('geminiApiKey', e.target.value)}
+                    placeholder="請輸入 Gemini API Key"
                     className="flex-1"
                   />
                   <Button
@@ -503,77 +464,21 @@ export default function SettingsPage() {
                     {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  請從 Moonshot Platform 取得您的 API Key
+                <p className="text-xs text-purple-700">
+                  註冊：<a href="https://ai.google.dev" target="_blank" className="underline">ai.google.dev</a> 
+                  · 每分鐘15次免費請求
                 </p>
               </div>
-            )}
 
-            {/* Hugging Face API Key */}
-            {settings.aiProvider === 'huggingface' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Hugging Face API Key
-                </label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type={showOpenAIKey ? 'text' : 'password'}
-                    value={settings.huggingfaceApiKey || ''}
-                    onChange={(e) => handleChange('huggingfaceApiKey', e.target.value)}
-                    placeholder="請輸入 Hugging Face API Key"
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
-                  >
-                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+              {/* Cohere API Key */}
+              <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-lg">💼</span>
+                  <label className="block text-sm font-medium">
+                    Cohere API Key
+                  </label>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  請從 Hugging Face 取得您的免費 Access Token
-                </p>
-              </div>
-            )}
-
-            {/* Together AI API Key */}
-            {settings.aiProvider === 'together' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Together AI API Key
-                </label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type={showOpenAIKey ? 'text' : 'password'}
-                    value={settings.togetherApiKey || ''}
-                    onChange={(e) => handleChange('togetherApiKey', e.target.value)}
-                    placeholder="請輸入 Together AI API Key"
-                    className="flex-1"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowOpenAIKey(!showOpenAIKey)}
-                  >
-                    {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
-                </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  請從 Together AI 取得您的 API Key
-                </p>
-              </div>
-            )}
-
-            {/* Cohere API Key */}
-            {settings.aiProvider === 'cohere' && (
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  Cohere API Key
-                </label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 mb-2">
                   <Input
                     type={showOpenAIKey ? 'text' : 'password'}
                     value={settings.cohereApiKey || ''}
@@ -590,8 +495,115 @@ export default function SettingsPage() {
                     {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
-                  請從 Cohere Dashboard 取得您的免費 API Key
+                <p className="text-xs text-orange-700">
+                  註冊：<a href="https://dashboard.cohere.ai" target="_blank" className="underline">dashboard.cohere.ai</a> 
+                  · 每月1000次免費請求
+                </p>
+              </div>
+            </div>
+
+            {/* 其他AI服務 */}
+            <div className="space-y-4">
+              <h4 className="font-medium text-gray-800">🔧 其他AI服務</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 智譜AI */}
+                <div className="p-3 border border-gray-200 rounded-lg">
+                  <label className="block text-sm font-medium mb-2">
+                    📝 智譜AI GLM API Key
+                  </label>
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.zhipuApiKey || ''}
+                    onChange={(e) => handleChange('zhipuApiKey', e.target.value)}
+                    placeholder="智譜AI API Key"
+                    className="text-sm"
+                  />
+                </div>
+
+                {/* Moonshot */}
+                <div className="p-3 border border-gray-200 rounded-lg">
+                  <label className="block text-sm font-medium mb-2">
+                    🌙 Moonshot API Key
+                  </label>
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.moonshotApiKey || ''}
+                    onChange={(e) => handleChange('moonshotApiKey', e.target.value)}
+                    placeholder="Moonshot API Key"
+                    className="text-sm"
+                  />
+                </div>
+
+                {/* Hugging Face */}
+                <div className="p-3 border border-gray-200 rounded-lg">
+                  <label className="block text-sm font-medium mb-2">
+                    🤗 Hugging Face Token
+                  </label>
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.huggingfaceApiKey || ''}
+                    onChange={(e) => handleChange('huggingfaceApiKey', e.target.value)}
+                    placeholder="Hugging Face Token"
+                    className="text-sm"
+                  />
+                </div>
+
+                {/* Together AI */}
+                <div className="p-3 border border-gray-200 rounded-lg">
+                  <label className="block text-sm font-medium mb-2">
+                    🤝 Together AI API Key
+                  </label>
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.togetherApiKey || ''}
+                    onChange={(e) => handleChange('togetherApiKey', e.target.value)}
+                    placeholder="Together AI API Key"
+                    className="text-sm"
+                  />
+                </div>
+
+                {/* OpenAI (付費) */}
+                <div className="p-3 border border-red-200 rounded-lg bg-red-50">
+                  <label className="block text-sm font-medium mb-2">
+                    💰 OpenAI API Key (付費)
+                  </label>
+                  <Input
+                    type={showOpenAIKey ? 'text' : 'password'}
+                    value={settings.openaiApiKey || ''}
+                    onChange={(e) => handleChange('openaiApiKey', e.target.value)}
+                    placeholder="OpenAI API Key"
+                    className="text-sm"
+                  />
+                  <p className="text-xs text-red-600 mt-1">需要付費，建議優先使用免費服務</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 測試AI連接功能 */}
+            {settings.aiAutoFallback && (
+              <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h4 className="font-medium text-gray-800 mb-3">🧪 測試AI連接</h4>
+                <div className="flex gap-3">
+                  <Button
+                    onClick={testAIConnections}
+                    disabled={isSaving}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {isSaving ? '測試中...' : '測試所有AI服務'}
+                  </Button>
+                  <Button
+                    onClick={resetAIFailures}
+                    disabled={isSaving}
+                    variant="outline"
+                    size="sm"
+                  >
+                    重置失敗計數
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  測試所有已配置的AI服務是否可正常使用，並重置失敗計數
                 </p>
               </div>
             )}

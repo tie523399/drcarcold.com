@@ -42,12 +42,12 @@
   
   <!-- 標題文字 -->
   <text x="400" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="white">
-    DrCarCold 汽車冷媒新聞
+    DrCarCold 技術資訊
   </text>
   
   <!-- 副標題 -->
   <text x="400" y="350" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="white" opacity="0.8">
-    專業汽車冷氣維修 • R134a R1234yf 冷媒服務
+    最新汽車冷媒技術 • 專業維修指南 • 產業動態
   </text>
   
   <!-- 裝飾元素 -->

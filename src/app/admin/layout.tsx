@@ -21,7 +21,8 @@ import {
   Bug,
   Globe,
   Search,
-  Wrench
+  Wrench,
+  Database
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
@@ -30,7 +31,8 @@ import { ToastProvider } from '@/components/ui/use-toast'
 
 const navItems = [
   { href: '/admin/dashboard', label: '儀表板', icon: LayoutDashboard },
-  { href: '/admin/auto-service', label: '自動化服務', icon: Wrench },
+  { href: '/admin/auto-service', label: '🚀 統一控制中心', icon: Wrench },
+  { href: '/admin/ai-test-simple', label: '🧪 AI快速測試', icon: Bug },
   { href: '/admin/content', label: '內容管理', icon: Sparkles },
   { href: '/admin/categories', label: '分類管理', icon: FolderTree },
   { href: '/admin/products', label: '產品管理', icon: Package },
@@ -39,8 +41,13 @@ const navItems = [
   { href: '/admin/banners', label: '橫幅管理', icon: Image },
   { href: '/admin/crawler', label: '爬蟲監控', icon: Bot },
   { href: '/admin/news-sources', label: '新聞來源', icon: Globe },
-  { href: '/admin/seo-generator', label: 'SEO 文章生成器', icon: Sparkles },
+  { href: '/admin/seo-ranking', label: '🎯 SEO排名監控', icon: Sparkles },
   { href: '/admin/seo-analysis', label: 'SEO 分析', icon: Search },
+  { href: '/admin/database-health', label: '🏥 數據庫健康', icon: Database },
+  { href: '/admin/random-images', label: '🎲 隨機圖片', icon: Image },
+  { href: '/admin/bulk-update-images', label: '🖼️ 批量更新圖片', icon: Image },
+  { href: '/admin/deep-test', label: '🧪 深度測試', icon: Bug },
+  { href: '/admin/debug-center', label: '🔧 除錯中心', icon: Settings },
   { href: '/admin/settings', label: '系統設定', icon: Settings },
 ]
 

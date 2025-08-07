@@ -77,14 +77,15 @@ export function SEOBanner({
 
   // Full variant
   return (
-    <div className={`seo-banner-full bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 text-white ${className}`}>
-      <div className="container mx-auto px-4 py-6">
+    <div className={`seo-banner-full bg-gradient-silver-dark text-white relative overflow-hidden ${className}`}>
+      <div className="absolute inset-0 bg-silver-pattern opacity-10"></div>
+      <div className="container mx-auto px-4 py-6 relative z-10">
         {/* 主要標語 */}
         <div className="text-center mb-6">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">
             {getSlogan()}
           </h2>
-          <p className="text-blue-100 text-lg">
+          <p className="text-gray-300 text-lg">
             {getSEOSlogan('secondary', locale)}
           </p>
         </div>
@@ -115,7 +116,7 @@ export function SEOBanner({
             size="lg"
             variant="secondary"
             onClick={() => handleContact('phone')}
-            className="bg-white text-blue-700 hover:bg-blue-50 font-medium"
+            className="bg-white text-gray-800 hover:bg-gray-100 font-medium"
           >
             <Phone className="h-4 w-4 mr-2" />
             立即來電：{company.phone}
@@ -134,7 +135,7 @@ export function SEOBanner({
 
         {/* 營業時間 */}
         <div className="text-center mt-4">
-          <p className="text-blue-100 text-sm">
+          <p className="text-gray-300 text-sm">
             🕒 營業時間：{company.hours} | 📍 {company.location}
           </p>
         </div>

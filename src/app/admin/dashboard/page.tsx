@@ -337,7 +337,7 @@ export default function AdminDashboard() {
               <Link href="/admin/auto-service">
                 <Button variant="premium" className="w-full">
                   <Settings className="mr-2 h-4 w-4" />
-                  自動化服務管理
+                  🚀 統一控制中心
                 </Button>
               </Link>
             </div>

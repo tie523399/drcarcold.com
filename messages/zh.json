@@ -87,34 +87,81 @@
   "lookup": {
     "title": "汽車冷媒填充查詢系統",
     "subtitle": "快速查詢各品牌車型的冷媒充填量資訊",
+    "description": "智能冷媒查詢 | 精準填充量資訊 | 支援 R134a、R1234yf 等多種冷媒類型",
     "category": {
       "regular": "一般車輛冷媒填充",
       "regularDesc": "各品牌汽車冷媒充填資訊",
       "truck": "大型車冷媒填充",
       "truckDesc": "卡車、巴士等大型車輛",
       "malaysia": "馬來西亞車冷媒填充",
-      "malaysiaDesc": "馬來西亞品牌車輛"
+      "malaysiaDesc": "馬來西亞品牌車輛",
+      "luxury": "豪華車輛",
+      "japanese": "日系車輛",
+      "korean": "韓系車輛",
+      "american": "美系車輛",
+      "european": "歐系車輛"
     },
     "search": {
-      "title": "查詢車輛冷媒資訊",
+      "title": "智能搜尋",
+      "smartSearch": "智能搜尋",
+      "brandCategory": "品牌類別",
+      "selectBrand": "選擇品牌",
+      "allCategories": "全部類別",
+      "allBrands": "全部品牌",
       "brand": "選擇品牌",
       "brandPlaceholder": "請選擇品牌",
       "model": "搜尋車型",
+      "modelName": "車型名稱",
       "modelPlaceholder": "輸入車型名稱",
+      "year": "年份",
+      "yearPlaceholder": "輸入年份",
+      "refrigerantType": "冷媒類型",
+      "allRefrigerants": "全部冷媒",
+      "globalSearch": "關鍵字搜尋",
+      "globalSearchPlaceholder": "搜尋品牌、車型、年份或冷媒類型",
       "button": "搜尋",
+      "reset": "重置搜尋",
       "loading": "搜尋中..."
     },
     "results": {
       "title": "搜尋結果",
+      "found": "找到",
+      "results": "個結果",
       "model": "車型",
       "year": "年份",
-      "engine": "引擎型式",
-      "refrigerant": "冷媒種類",
-      "amount": "充填量",
-      "oil": "冷凍油",
-      "notes": "備註"
+      "engine": "引擎",
+      "engineType": "引擎型式",
+      "refrigerant": "冷媒類型",
+      "refrigerantType": "冷媒類型",
+      "amount": "冷媒充填量",
+      "refrigerantAmount": "冷媒充填量",
+      "oilType": "油品類型",
+      "oil": "冷凍油量",
+      "oilAmount": "油品用量",
+      "notes": "備註",
+      "category": "類別",
+      "brand": "品牌",
+      "information": "資訊",
+      "dataSource": "資料來源"
     },
-    "noResults": "請選擇品牌或輸入車型進行搜尋"
+    "language": {
+      "switch": "語言切換",
+      "chinese": "中文",
+      "english": "English",
+      "switchTo": "切換到",
+      "current": "目前語言"
+    },
+    "status": {
+      "loading": "載入中...",
+      "error": "載入失敗，請重試",
+      "noResults": "找不到符合條件的車型",
+      "selectBrand": "請選擇品牌或輸入車型進行搜尋",
+      "totalRecords": "總計記錄數"
+    },
+    "disclaimer": {
+      "title": "免責聲明",
+      "content": "此充填冷媒量僅供參考，正確請以原廠標示為準"
+    }
   },
   "about": {
     "hero": {

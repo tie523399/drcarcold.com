@@ -58,23 +58,148 @@ interface SystemSettings {
   crawlInterval: number
 }
 
-// 簡單的文章爬取函數
+// 強化的文章爬取函數 - 完全排除404問題
 async function simpleScrapeArticle(url: string): Promise<ArticleContent> {
-  const response = await fetch(url)
-  const html = await response.text()
-  const $ = cheerio.load(html)
+  console.log(`🔍 開始爬取文章: ${url}`)
   
-  // 基本的文章內容提取
-  const title = $('h1').first().text() || $('title').text() || '無標題'
-  const content = $('article, .content, .post-content, .entry-content, main p').text().slice(0, 2000) || '無內容'
-  const author = $('meta[name="author"]').attr('content') || $('.author').text() || '未知作者'
-  
-  return {
-    title: title.trim(),
-    content: content.trim(),
-    author: author.trim(),
-    url,
-    tags: []
+  try {
+    // 第一步：驗證URL
+    const { urlValidator } = await import('./url-validator')
+    const validation = await urlValidator.validateURL(url)
+    
+    if (!validation.isValid) {
+      throw new Error(`URL驗證失敗: ${validation.error} (狀態碼: ${validation.statusCode})`)
+    }
+    
+    // 第二步：獲取內容
+    console.log(`✅ URL驗證通過，開始獲取內容...`)
+    
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15000) // 15秒超時
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-TW,zh;q=0.8,en;q=0.6',
+        'Accept-Encoding': 'gzip, deflate',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      },
+      signal: controller.signal
+    })
+    
+    clearTimeout(timeoutId)
+    
+    // 第三步：檢查響應狀態
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error(`文章不存在 (404): ${url}`)
+      } else if (response.status === 403) {
+        throw new Error(`訪問被拒絕 (403): ${url}`)
+      } else if (response.status === 500) {
+        throw new Error(`服務器錯誤 (500): ${url}`)
+      } else {
+        throw new Error(`HTTP錯誤 ${response.status}: ${response.statusText}`)
+      }
+    }
+    
+    // 第四步：檢查內容類型
+    const contentType = response.headers.get('content-type')
+    if (contentType && !contentType.includes('text/html')) {
+      throw new Error(`不是HTML內容: ${contentType}`)
+    }
+    
+    // 第五步：解析HTML
+    const html = await response.text()
+    
+    // 第六步：檢查是否為錯誤頁面
+    if (html.includes('404') || html.includes('Not Found') || 
+        html.includes('頁面不存在') || html.includes('找不到頁面') ||
+        html.includes('Page Not Found') || html.includes('File not found') ||
+        html.length < 500) {
+      throw new Error(`檢測到404錯誤頁面或內容過短: ${url}`)
+    }
+    
+    const $ = cheerio.load(html)
+    
+    // 第七步：提取和驗證內容
+    let title = $('h1').first().text().trim()
+    if (!title) {
+      title = $('title').text().trim()
+    }
+    if (!title) {
+      title = $('meta[property="og:title"]').attr('content')?.trim() || ''
+    }
+    
+    // 驗證標題
+    if (!title || title.length < 5) {
+      throw new Error(`無法提取有效標題: ${url}`)
+    }
+    
+    // 提取內容
+    let content = ''
+    
+    // 嘗試多種內容選擇器
+    const contentSelectors = [
+      'article',
+      '.content',
+      '.post-content', 
+      '.entry-content',
+      '.article-content',
+      '.news-content',
+      'main p',
+      '.story-body',
+      '.article-body'
+    ]
+    
+    for (const selector of contentSelectors) {
+      const extracted = $(selector).text().trim()
+      if (extracted && extracted.length > content.length) {
+        content = extracted
+      }
+    }
+    
+    // 清理內容
+    content = content
+      .replace(/\s+/g, ' ')  // 合併空白
+      .replace(/\n\s*\n/g, '\n')  // 合併空行
+      .slice(0, 3000)  // 限制長度
+      .trim()
+    
+    // 驗證內容
+    if (!content || content.length < 100) {
+      throw new Error(`內容過短或無法提取: ${url} (長度: ${content.length})`)
+    }
+    
+    // 提取作者
+    let author = $('meta[name="author"]').attr('content') || 
+                $('.author').text() || 
+                $('.byline').text() || 
+                $('[class*="author"]').first().text() || 
+                '未知作者'
+    author = author.trim().slice(0, 50)
+    
+    const result: ArticleContent = {
+      title: title.slice(0, 200),
+      content,
+      author,
+      url,
+      tags: []
+    }
+    
+    console.log(`✅ 文章爬取成功: ${title.slice(0, 50)}... (內容長度: ${content.length})`)
+    
+    return result
+    
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      throw new Error(`爬取超時: ${url}`)
+    }
+    
+    console.error(`❌ 文章爬取失敗: ${url}`, error.message)
+    throw new Error(`爬取失敗: ${error.message}`)
   }
 }
 
@@ -429,17 +554,33 @@ export class AutoNewsCrawler {
           
           // 儲存並發布
           if (processedArticle) {
-            await this.saveAndPublishArticle(processedArticle, source)
-            result.articlesProcessed++
-            result.articlesPublished++
+            console.log(`📝 處理完成，開始保存文章: ${processedArticle.title}`)
+            const saveResult = await this.saveAndPublishArticle(processedArticle, source)
             
-            // 更新監控統計
-            if (this.monitor) {
-              this.monitor.updateStats(source.id, {
-                articlesProcessed: result.articlesProcessed,
-                articlesPublished: result.articlesPublished
-              })
+            if (saveResult.success) {
+              result.articlesProcessed++
+              result.articlesPublished++
+              console.log(`✅ 文章成功處理並保存: ${processedArticle.title}`)
+              
+              // 更新監控統計
+              if (this.monitor) {
+                this.monitor.updateStats(source.id, {
+                  articlesProcessed: result.articlesProcessed,
+                  articlesPublished: result.articlesPublished
+                })
+              }
+            } else {
+              console.log(`❌ 文章保存失敗: ${processedArticle.title} - ${saveResult.error}`)
+              result.errors.push(`文章保存失敗: ${processedArticle.title} - ${saveResult.error}`)
+              
+              // 記錄保存失敗到監控
+              if (this.monitor) {
+                this.monitor.recordError(source.id, `文章保存失敗: ${processedArticle.title} - ${saveResult.error}`)
+              }
             }
+          } else {
+            console.log(`❌ 文章處理失敗，跳過保存: ${url}`)
+            result.errors.push(`文章處理失敗: ${url}`)
           }
 
           // 延遲避免過快請求
@@ -679,17 +820,18 @@ export class AutoNewsCrawler {
       let processedTitle = articleData.title
 
       // 如果啟用 AI 改寫
-      if (this.settings?.aiRewriteEnabled && this.settings?.openaiApiKey) {
-        console.log(`使用 AI 改寫文章: ${articleData.title}`)
+      if (this.settings?.aiRewriteEnabled) {
+        console.log(`🤖 使用智能AI改寫文章: ${articleData.title}`)
         
         try {
-          processedContent = await rewriteArticleWithAI(
+          // 使用AI改寫內容
+          processedContent = await rewriteWithAI(
             articleData.content,
             this.settings.seoKeywords,
             this.settings.openaiApiKey
           )
 
-          // 也可以改寫標題
+          // 改寫標題
           processedTitle = await this.rewriteTitle(
             articleData.title,
             this.settings.seoKeywords,
@@ -718,8 +860,8 @@ export class AutoNewsCrawler {
         author: processedArticle.author,
         publishDate: processedArticle.publishDate,
         tags: processedArticle.tags,
-        coverImage: processedArticle.source,
-        excerpt: processedArticle.excerpt
+        coverImage: processedArticle.url,
+        excerpt: processedArticle.content.substring(0, 200) + '...'
       }
       
       const qualityScore = this.qualityChecker.checkQuality(
@@ -744,9 +886,6 @@ export class AutoNewsCrawler {
         // 更新處理後的文章
         processedArticle.title = fixedArticle.title
         processedArticle.content = fixedArticle.content
-        if (fixedArticle.excerpt) {
-          processedArticle.excerpt = fixedArticle.excerpt
-        }
         
         // 重新檢查品質
         const newScore = this.qualityChecker.checkQuality(fixedArticle, this.settings?.seoKeywords.split(',').map(k => k.trim()) || [])
@@ -836,7 +975,7 @@ export class AutoNewsCrawler {
     const seoKeywords = this.settings?.seoKeywords || '汽車冷媒,空調維修,冷凍空調'
     
     // 生成動態圖片
-    const imageData = generateNewsImages(
+    const imageData = await generateNewsImages(
       articleData.title,
       articleData.content,
       articleData.tags || [],
@@ -872,35 +1011,150 @@ export class AutoNewsCrawler {
   }
 
   // 儲存並發布文章
-  private async saveAndPublishArticle(articleData: ArticleContent, source: NewsSource): Promise<void> {
-    try {
-      // 生成SEO優化的文章資料
-      const seoArticle = await this.generateSEOArticle(articleData, source)
-      
-      // 檢查設定是否自動發布
-      const autoPublish = await this.shouldAutoPublish()
-      
-      // 生成內容哈希
-      const contentHash = this.duplicateChecker.generateContentHash(seoArticle.content)
-      
-      // @ts-ignore - contentHash 和 sourceId 欄位需要 prisma generate
-      const news = await prisma.news.create({
-        data: {
-          ...seoArticle,
-          isPublished: autoPublish,
-          publishedAt: autoPublish ? new Date() : null,
-          sourceId: source.id,
-          contentHash: contentHash
+  private async saveAndPublishArticle(articleData: ArticleContent, source: NewsSource): Promise<{ success: boolean; newsId?: string; error?: string }> {
+    let retryCount = 0
+    const maxRetries = 3
+    
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`🔄 嘗試保存文章 (第 ${retryCount + 1}/${maxRetries} 次): ${articleData.title}`)
+        
+        // 生成SEO優化的文章資料
+        const seoArticle = await this.generateSEOArticle(articleData, source)
+        
+        // 檢查設定是否自動發布
+        const autoPublish = await this.shouldAutoPublish()
+        
+        // 生成內容哈希
+        const contentHash = this.duplicateChecker.generateContentHash(seoArticle.content)
+        
+        // 檢查重複標題
+        const existingByTitle = await prisma.news.findFirst({
+          where: { title: seoArticle.title }
+        })
+        
+        if (existingByTitle) {
+          console.log(`⚠️ 發現重複標題，跳過保存: ${seoArticle.title}`)
+          return { success: false, error: '標題重複' }
         }
-      })
-
-      console.log(`文章已${autoPublish ? '發布' : '儲存為草稿'}: ${seoArticle.title}`)
-      console.log(`SEO 優化: 關鍵字 ${seoArticle.seoKeywords}, 閱讀時間 ${seoArticle.readingTime} 分鐘`)
-
-    } catch (error) {
-      console.error('儲存文章失敗:', error)
-      throw error
+        
+        // 檢查重複內容哈希
+        const existingByHash = await prisma.news.findFirst({
+          where: { contentHash: contentHash }
+        })
+        
+        if (existingByHash) {
+          console.log(`⚠️ 發現重複內容，跳過保存: ${seoArticle.title}`)
+          return { success: false, error: '內容重複' }
+        }
+        
+        // 驗證必要欄位
+        if (!seoArticle.title || seoArticle.title.length < 5) {
+          console.log(`❌ 標題無效: ${seoArticle.title}`)
+          return { success: false, error: '標題過短或無效' }
+        }
+        
+        if (!seoArticle.content || seoArticle.content.length < 100) {
+          console.log(`❌ 內容無效，長度: ${seoArticle.content?.length || 0}`)
+          return { success: false, error: '內容過短或無效' }
+        }
+        
+        if (!seoArticle.slug || seoArticle.slug.length < 3) {
+          console.log(`❌ Slug無效: ${seoArticle.slug}`)
+          return { success: false, error: 'Slug無效' }
+        }
+        
+        // 檢查slug唯一性
+        const existingBySlug = await prisma.news.findFirst({
+          where: { slug: seoArticle.slug }
+        })
+        
+        if (existingBySlug) {
+          // 生成新的唯一slug
+          const timestamp = Date.now()
+          seoArticle.slug = `${seoArticle.slug}-${timestamp}`.substring(0, 100)
+          console.log(`🔧 Slug重複，生成新slug: ${seoArticle.slug}`)
+        }
+        
+        console.log(`💾 開始保存文章到數據庫...`)
+        console.log(`   標題: ${seoArticle.title}`)
+        console.log(`   Slug: ${seoArticle.slug}`)
+        console.log(`   內容長度: ${seoArticle.content.length}`)
+        console.log(`   作者: ${seoArticle.author}`)
+        console.log(`   自動發布: ${autoPublish}`)
+        
+        // @ts-ignore - contentHash 和 sourceId 欄位需要 prisma generate
+        const news = await prisma.news.create({
+          data: {
+            ...seoArticle,
+            isPublished: autoPublish,
+            publishedAt: autoPublish ? new Date() : null,
+            sourceId: source.id,
+            contentHash: contentHash,
+            status: autoPublish ? 'published' : 'draft'
+          }
+        })
+        
+        // 驗證保存成功
+        const savedNews = await prisma.news.findUnique({
+          where: { id: news.id }
+        })
+        
+        if (!savedNews) {
+          throw new Error('文章保存後無法查詢到，可能保存失敗')
+        }
+        
+        console.log(`✅ 文章已成功${autoPublish ? '發布' : '儲存為草稿'}: ${seoArticle.title}`)
+        console.log(`   數據庫ID: ${news.id}`)
+        console.log(`   訪問URL: /${savedNews.slug}`)
+        console.log(`   SEO關鍵字: ${seoArticle.seoKeywords}`)
+        console.log(`   閱讀時間: ${seoArticle.readingTime} 分鐘`)
+        
+        // 記錄成功到監控系統
+        if (this.monitor) {
+          this.monitor.log(LogLevel.INFO, `文章保存成功: ${seoArticle.title}`, {
+            newsId: news.id,
+            slug: savedNews.slug,
+            autoPublish,
+            contentLength: seoArticle.content.length
+          })
+        }
+        
+        return { success: true, newsId: news.id }
+        
+      } catch (error: any) {
+        retryCount++
+        const errorMsg = error instanceof Error ? error.message : '未知錯誤'
+        console.error(`❌ 保存文章失敗 (第 ${retryCount}/${maxRetries} 次):`, errorMsg)
+        
+        // 記錄詳細錯誤信息
+        if (error.code === 'P2002') {
+          console.error('   原因: 數據庫唯一性約束違反 (可能是slug或其他唯一欄位重複)')
+        } else if (error.code === 'P2003') {
+          console.error('   原因: 外鍵約束違反')
+        } else if (error.message?.includes('required')) {
+          console.error('   原因: 必要欄位缺失')
+        }
+        
+        // 記錄錯誤到監控系統
+        if (this.monitor) {
+          this.monitor.recordError(source.id, `文章保存失敗: ${articleData.title} - ${errorMsg}`)
+        }
+        
+        // 如果還有重試機會，等待後重試
+        if (retryCount < maxRetries) {
+          const waitTime = retryCount * 2000 // 遞增等待時間
+          console.log(`⏳ ${waitTime/1000}秒後重試...`)
+          await this.delay(waitTime)
+        } else {
+          // 所有重試都失敗了
+          console.error(`💥 文章保存完全失敗: ${articleData.title}`)
+          return { success: false, error: errorMsg }
+        }
+      }
     }
+    
+    return { success: false, error: '重試次數用盡' }
   }
 
   // 檢查是否應該自動發布

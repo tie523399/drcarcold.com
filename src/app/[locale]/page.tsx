@@ -172,6 +172,37 @@ export default function HomePage({ params: { locale } }: { params: { locale: str
       {/* Latest Articles Section */}
       <LatestArticles locale={locale} />
 
+      {/* Refrigerant Lookup Section */}
+      <section className="py-16 md:py-24">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('home.lookup.title')}</h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              {t('home.lookup.subtitle')}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {categories.map((category) => (
+              <Link key={category.title} href={category.href}>
+                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
+                  <CardHeader>
+                    <CardTitle>{category.title}</CardTitle>
+                    <CardDescription>{category.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <span className="text-primary flex items-center hover:underline">
+                      {t('home.lookup.cta')}
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </span>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-16 md:py-24 bg-gradient-silver-light relative">
         <div className="absolute inset-0 bg-silver-pattern opacity-20"></div>
@@ -200,37 +231,6 @@ export default function HomePage({ params: { locale } }: { params: { locale: str
                 </Card>
               )
             })}
-          </div>
-        </div>
-      </section>
-
-      {/* Refrigerant Lookup Section */}
-      <section className="py-16 md:py-24">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('home.lookup.title')}</h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              {t('home.lookup.subtitle')}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {categories.map((category) => (
-              <Link key={category.title} href={category.href}>
-                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer">
-                  <CardHeader>
-                    <CardTitle>{category.title}</CardTitle>
-                    <CardDescription>{category.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <span className="text-primary flex items-center hover:underline">
-                      {t('home.lookup.cta')}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </span>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
           </div>
         </div>
       </section>

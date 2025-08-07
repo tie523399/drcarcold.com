@@ -39,6 +39,36 @@ export interface Category {
   updatedAt: Date
 }
 
+// Vehicle types (統一架構)
+export interface VehicleBrand {
+  id: string
+  name: string
+  nameEn: string
+  category: 'regular' | 'truck' | 'malaysia' | 'luxury' | 'commercial'
+  logoUrl?: string
+  order: number
+  models?: VehicleModel[]
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface VehicleModel {
+  id: string
+  brandId: string
+  brand?: VehicleBrand
+  modelName: string
+  year?: string
+  engineType?: string
+  engineSize?: string
+  refrigerantType: string
+  fillAmount: string
+  oilType?: string
+  oilAmount?: string
+  notes?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 // Refrigerant types
 export interface Refrigerant {
   id: string
@@ -120,6 +150,27 @@ export interface ProductFormData {
   seoDescription?: string
 }
 
+export interface VehicleBrandFormData {
+  name: string
+  nameEn: string
+  category: 'regular' | 'truck' | 'malaysia' | 'luxury' | 'commercial'
+  logoUrl?: string
+  order: number
+}
+
+export interface VehicleModelFormData {
+  brandId: string
+  modelName: string
+  year?: string
+  engineType?: string
+  engineSize?: string
+  refrigerantType: string
+  fillAmount: string
+  oilType?: string
+  oilAmount?: string
+  notes?: string
+}
+
 export interface RefrigerantFormData {
   name: string
   code: string
@@ -148,11 +199,24 @@ export interface NewsFormData {
   seoDescription?: string
 }
 
-// API Response types
-export interface ApiResponse<T> {
+// API Response types - 統一標準
+export interface ApiResponse<T = any> {
+  success: boolean
   data?: T
   error?: string
   message?: string
+  timestamp?: string
+}
+
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+    hasNext: boolean
+    hasPrev: boolean
+  }
 }
 
 export interface PaginationParams {
@@ -160,12 +224,55 @@ export interface PaginationParams {
   limit: number
   sort?: string
   order?: 'asc' | 'desc'
+  total?: number
 }
 
-export interface PaginatedResponse<T> {
-  data: T[]
-  total: number
-  page: number
-  limit: number
-  totalPages: number
-} 
+// 錯誤響應統一格式
+export interface ErrorResponse {
+  success: false
+  error: string
+  message: string
+  statusCode: number
+  timestamp: string
+  path?: string
+}
+
+// 成功響應統一格式
+export interface SuccessResponse<T = any> {
+  success: true
+  data: T
+  message?: string
+  timestamp: string
+}
+
+// 搜尋和篩選參數
+export interface SearchParams {
+  query?: string
+  filters?: Record<string, any>
+  sort?: string
+  order?: 'asc' | 'desc'
+}
+
+// 檔案上傳相關
+export interface FileUploadRequest {
+  file: File
+  category?: string
+  metadata?: Record<string, any>
+}
+
+export interface FileUploadResponse {
+  success: boolean
+  url?: string
+  filename?: string
+  size?: number
+  error?: string
+}
+
+// 服務狀態相關
+export interface ServiceHealthStatus {
+  service: string
+  status: 'healthy' | 'warning' | 'error'
+  uptime: number
+  lastCheck: string
+  details?: Record<string, any>
+}

@@ -1,6 +1,7 @@
 // SEO 內容自動生成服務
 import { prisma } from '@/lib/prisma'
 import { getAIProvider } from '@/lib/ai-service'
+import { aiProviderManager } from '@/lib/ai-provider-manager'
 import { generateNewsImages } from '@/lib/news-image-generator'
 
 interface SEOArticleTopic {
@@ -138,29 +139,33 @@ export class SEOContentGenerator {
 
   // 生成文章內容
   private async generateArticleContent(topic: SEOArticleTopic): Promise<string> {
-    const prompt = `請撰寫一篇關於「${topic.title}」的專業文章，這是一篇針對台灣汽車冷氣維修市場的 SEO 優化文章。
-
-文章大綱：
-${topic.outline.map((item, index) => `${index + 1}. ${item}`).join('\n')}
-
-SEO 關鍵字（請自然地融入文章中）：${topic.keywords.join('、')}
+    console.log(`開始生成文章內容: ${topic.title}`)
+    
+    // 簡化 prompt 以減少 API 負擔
+    const prompt = `請撰寫一篇關於「${topic.title}」的汽車冷氣維修文章。
 
 要求：
-1. 使用繁體中文撰寫
-2. 文章長度約 1000-1500 字
-3. 包含實用的資訊和建議
-4. 語氣專業但親切
-5. 適當使用標題層級（使用 Markdown 格式）
-6. 自然地融入 SEO 關鍵字
-7. 包含具體的例子和數據（可以是一般性的市場數據）
-8. 文章結尾包含行動呼籲（聯繫專業維修服務）
+1. 使用繁體中文
+2. 800-1200 字長度
+3. 包含關鍵字：${topic.keywords.slice(0, 3).join('、')}
+4. 專業但易懂的語氣
+5. 使用 Markdown 格式
 
-請直接輸出文章內容，不需要額外的說明。`
+請直接輸出文章內容。`
 
-    const provider = getAIProvider('cohere')
-    const content = await provider.rewriteArticle(prompt, topic.keywords.join('、'), this.cohereApiKey)
-    
-    return content
+    try {
+      const provider = getAIProvider('cohere')
+      console.log(`調用 Cohere API 生成文章...`)
+      
+      const content = await provider.rewriteArticle(prompt, topic.keywords.join('、'), this.cohereApiKey)
+      
+      console.log(`文章生成成功，內容長度: ${content.length} 字`)
+      return content
+      
+    } catch (error) {
+      console.error(`生成文章內容失敗:`, error)
+      throw new Error(`AI 文章生成失敗: ${error instanceof Error ? error.message : '未知錯誤'}`)
+    }
   }
 
   // 生成 SEO 描述
@@ -216,6 +221,8 @@ SEO 關鍵字（請自然地融入文章中）：${topic.keywords.join('、')}
 
   // 生成單篇 SEO 文章
   async generateSEOArticle(): Promise<any | null> {
+    const startTime = Date.now()
+    
     try {
       await this.loadUsedTopics()
       const topic = this.getNextTopic()
@@ -227,34 +234,65 @@ SEO 關鍵字（請自然地融入文章中）：${topic.keywords.join('、')}
 
       console.log(`正在生成 SEO 文章: ${topic.title}`)
 
-      // 生成文章內容
-      const content = await this.generateArticleContent(topic)
-      const description = this.generateSEODescription(content, topic.keywords)
-      const slug = this.generateSlug(topic.title)
-
-      // 檢查重複
-      if (await this.isDuplicateArticle(topic.title, content)) {
-        console.log(`文章已存在，跳過: ${topic.title}`)
-        this.usedTopics.add(topic.title)
-        return await this.generateSEOArticle() // 遞歸生成下一篇
-      }
-
-      // 保存文章
-      const article = await this.saveArticle({
-        title: topic.title,
-        content: content,
-        description: description,
-        keywords: topic.keywords,
-        slug: slug
+      // 設定整體超時保護
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('文章生成超時 (120秒)'))
+        }, 120000) // 2分鐘總超時
       })
 
-      this.usedTopics.add(topic.title)
-      console.log(`SEO 文章生成完成: ${topic.title}`)
+      const generationPromise = async () => {
+        // 生成文章內容
+        console.log(`步驟 1/4: 生成文章內容...`)
+        const content = await this.generateArticleContent(topic)
+        
+        console.log(`步驟 2/4: 生成 SEO 描述...`)
+        const description = this.generateSEODescription(content, topic.keywords)
+        
+        console.log(`步驟 3/4: 生成 URL slug...`)
+        const slug = this.generateSlug(topic.title)
+
+        // 檢查重複
+        if (await this.isDuplicateArticle(topic.title, content)) {
+          console.log(`文章已存在，跳過: ${topic.title}`)
+          this.usedTopics.add(topic.title)
+          return await this.generateSEOArticle() // 遞歸生成下一篇
+        }
+
+        // 保存文章
+        console.log(`步驟 4/4: 保存文章到資料庫...`)
+        const article = await this.saveArticle({
+          title: topic.title,
+          content: content,
+          description: description,
+          keywords: topic.keywords,
+          slug: slug
+        })
+
+        this.usedTopics.add(topic.title)
+        return article
+      }
+
+      const article = await Promise.race([generationPromise(), timeoutPromise])
+      
+      const duration = Date.now() - startTime
+      console.log(`SEO 文章生成完成: ${topic.title} (耗時: ${duration}ms)`)
       
       return article
 
     } catch (error) {
-      console.error('生成 SEO 文章失敗:', error)
+      const duration = Date.now() - startTime
+      console.error(`生成 SEO 文章失敗 (耗時: ${duration}ms):`, error)
+      
+      // 提供更明確的錯誤訊息
+      if (error instanceof Error) {
+        if (error.message.includes('超時')) {
+          throw new Error(`SEO 文章生成超時：${error.message}`)
+        } else if (error.message.includes('API')) {
+          throw new Error(`AI API 調用錯誤：${error.message}`)
+        }
+      }
+      
       throw error
     }
   }
@@ -269,7 +307,7 @@ SEO 關鍵字（請自然地融入文章中）：${topic.keywords.join('、')}
   }) {
     try {
       // 生成動態圖片
-      const imageData = generateNewsImages(
+      const imageData = await generateNewsImages(
         article.title,
         article.content,
         ['教育性內容', 'SEO優化', ...article.keywords],
@@ -310,17 +348,28 @@ SEO 關鍵字（請自然地融入文章中）：${topic.keywords.join('、')}
     
     for (let i = 0; i < count; i++) {
       try {
+        console.log(`開始生成第 ${i + 1}/${count} 篇文章...`)
         const article = await this.generateSEOArticle()
         if (article) {
           articles.push(article)
-          // 延遲避免 API 限制
-          await new Promise(resolve => setTimeout(resolve, 2000))
+          console.log(`第 ${i + 1}/${count} 篇文章生成完成`)
+          
+          // 只在不是最後一篇時才延遲，並縮短延遲時間
+          if (i < count - 1) {
+            console.log('等待 1 秒後繼續生成下一篇...')
+            await new Promise(resolve => setTimeout(resolve, 1000))
+          }
         }
       } catch (error) {
         console.error(`生成第 ${i + 1} 篇文章失敗:`, error)
+        // 即使失敗也稍微延遲避免頻繁重試
+        if (i < count - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500))
+        }
       }
     }
     
+    console.log(`批次生成完成，成功生成 ${articles.length}/${count} 篇文章`)
     return articles
   }
 

@@ -78,12 +78,16 @@ export async function POST(request: NextRequest) {
     
     let results = []
     if (count === 1) {
+      console.log('生成單篇文章中...')
       const article = await generator.generateSEOArticle()
       if (article) {
         results.push(article)
+        console.log('單篇文章生成完成')
       }
     } else {
+      console.log(`開始批次生成 ${count} 篇文章...`)
       results = await generator.generateMultipleSEOArticles(count)
+      console.log(`批次生成完成，成功 ${results.length} 篇`)
     }
 
     // 獲取更新後的統計

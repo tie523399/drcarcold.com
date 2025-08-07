@@ -142,18 +142,18 @@ export default function CrawlerManagementPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Settings className="h-5 w-5 text-blue-600" />
+                <Zap className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <h3 className="font-semibold text-blue-900">爬蟲控制已統一</h3>
+                <h3 className="font-semibold text-blue-900">🚀 一鍵測試已整合</h3>
                 <p className="text-blue-700 text-sm">
-                  爬蟲的啟動和停止功能已整合到自動化服務管理中，享受更好的統一控制體驗
+                  所有爬蟲功能已整合到統一控制中心，支援一鍵測試：爬取→AI改寫→SEO優化→自動發布
                 </p>
               </div>
             </div>
             <Link href="/admin/auto-service">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                前往自動化服務
+              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                🎯 前往統一控制中心
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>

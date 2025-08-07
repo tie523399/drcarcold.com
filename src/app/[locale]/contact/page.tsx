@@ -167,9 +167,16 @@ export default async function ContactPage({ params: { locale } }: { params: { lo
   
   if (companyInfo.serviceAreas) {
     try {
-      serviceAreas = JSON.parse(companyInfo.serviceAreas)
+      // 檢查是否為有效的 JSON 字串
+      if (typeof companyInfo.serviceAreas === 'string' && companyInfo.serviceAreas.startsWith('[')) {
+        serviceAreas = JSON.parse(companyInfo.serviceAreas)
+      } else {
+        // 如果不是 JSON，使用預設值
+        console.warn('Service areas is not valid JSON:', companyInfo.serviceAreas)
+      }
     } catch (e) {
       console.error('Error parsing service areas:', e)
+      // 保持預設值
     }
   }
 

@@ -2,7 +2,8 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { SEOBanner } from '@/components/seo/seo-banner'
-import { Calendar, Eye, Tag } from 'lucide-react'
+import { Calendar, Eye, Tag, FileText, Bot } from 'lucide-react'
+import { prisma } from '@/lib/prisma'
 
 export async function generateMetadata({ params: { locale } }: { params: { locale: string } }): Promise<Metadata> {
   const isZh = locale === 'zh'
@@ -17,72 +18,55 @@ export async function generateMetadata({ params: { locale } }: { params: { local
   }
 }
 
-export default function NewsPage({ params: { locale } }: { params: { locale: string } }) {
-  const isZh = locale === 'zh'
+async function getNews() {
+  try {
+    const news = await prisma.news.findMany({
+      where: {
+        isPublished: true
+      },
+      orderBy: {
+        publishedAt: 'desc'
+      },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        coverImage: true,
+        publishedAt: true,
+        viewCount: true,
+        sourceName: true,
+        tags: true,
+        seoKeywords: true,
+        author: true
+      }
+    })
 
-  // 靜態新聞資料
-  const news = [
-    {
-      id: '1',
-      title: '車冷博士專業R134a冷媒充填服務',
-      slug: 'r134a-refrigerant-service',
-      excerpt: '車冷博士提供專業R134a冷媒充填服務，台中龍井15年經驗，專業認證技師，透明收費，完善保固。歡迎聯絡04-26301915。',
-      coverImage: '/images/news/default-1.jpg',
-      publishedAt: '2024-01-15',
-      viewCount: 156,
-      tags: ['R134a冷媒', '汽車冷氣', '專業服務', '台中龍井']
-    },
-    {
-      id: '2', 
-      title: 'R1234yf環保冷媒導入指南',
-      slug: 'r1234yf-eco-refrigerant-guide',
-      excerpt: 'R1234yf環保冷媒完整導入指南，了解新世代汽車冷氣系統的環保升級。車冷博士提供專業R1234yf服務，符合最新環保法規。',
-      coverImage: '/images/news/default-2.jpg',
-      publishedAt: '2024-01-10',
-      viewCount: 203,
-      tags: ['R1234yf', '環保冷媒', '技術指南', '法規更新']
-    },
-    {
-      id: '3',
-      title: '汽車冷氣不冷原因分析與解決方案',
-      slug: 'car-ac-not-cooling-solutions', 
-      excerpt: '汽車冷氣不冷怎麼辦？車冷博士分析5大常見原因：冷媒不足、冷凝器阻塞、壓縮機故障等，提供專業解決方案與預防保養建議。',
-      coverImage: '/images/news/default-3.jpg',
-      publishedAt: '2024-01-05',
-      viewCount: 342,
-      tags: ['汽車冷氣', '故障診斷', '維修指南', '保養建議']
-    },
-    {
-      id: '4',
-      title: '車冷博士服務範圍與聯絡資訊',
-      slug: 'service-contact-info',
-      excerpt: '車冷博士位於台中市龍井區，提供專業汽車冷媒服務。營業時間週一至週五09:30-17:30，歡迎來電04-26301915預約服務。',
-      coverImage: '/images/news/default-4.jpg', 
-      publishedAt: '2024-01-01',
-      viewCount: 128,
-      tags: ['服務範圍', '聯絡資訊', '台中龍井', '預約服務']
-    },
-    {
-      id: '5',
-      title: 'Toyota、Honda、Nissan冷媒規格查詢',
-      slug: 'toyota-honda-nissan-refrigerant-specs',
-      excerpt: '提供Toyota豐田、Honda本田、Nissan日產等主要品牌汽車的冷媒規格查詢。包含R134a、R1234yf冷媒充填量與PAG油規格資訊。',
-      coverImage: '/images/news/default-5.jpg',
-      publishedAt: '2023-12-28',
-      viewCount: 275,
-      tags: ['Toyota', 'Honda', 'Nissan', '冷媒規格', '查詢系統']
-    },
-    {
-      id: '6',
-      title: '汽車冷氣系統維護保養指南',
-      slug: 'car-ac-maintenance-guide',
-      excerpt: '定期保養汽車冷氣系統的重要性與方法。包含冷媒檢查、濾網更換、系統清洗等專業保養流程，延長冷氣系統使用壽命。',
-      coverImage: '/images/news/default-1.jpg',
-      publishedAt: '2023-12-25',
-      viewCount: 189,
-      tags: ['冷氣保養', '系統維護', '定期檢查', '專業流程']
-    }
-  ]
+    return news.map(article => ({
+      ...article,
+      // 解析 tags（如果是 JSON 字符串）
+      parsedTags: (() => {
+        try {
+          return typeof article.tags === 'string' ? JSON.parse(article.tags) : (article.tags || [])
+        } catch {
+          return []
+        }
+      })(),
+      // 解析 SEO 關鍵字作為標籤
+      keywordTags: article.seoKeywords ? article.seoKeywords.split(',').map(k => k.trim()).slice(0, 3) : [],
+      // 判斷文章類型
+      isAIGenerated: article.sourceName?.includes('AI Generated') || article.sourceName?.includes('SEO'),
+      viewCount: article.viewCount || 0
+    }))
+  } catch (error) {
+    console.error('獲取新聞失敗:', error)
+    return []
+  }
+}
+
+export default async function NewsPage({ params: { locale } }: { params: { locale: string } }) {
+  const isZh = locale === 'zh'
+  const news = await getNews()
 
   return (
     <div className="min-h-screen">
@@ -118,60 +102,115 @@ export default function NewsPage({ params: { locale } }: { params: { locale: str
               </p>
             )}
           </div>
+
+          {/* 文章統計 */}
+          <div className="flex items-center gap-6 text-sm text-gray-600">
+            <span>📚 共 {news.length} 篇文章</span>
+            <span>🤖 AI 生成: {news.filter(n => n.isAIGenerated).length} 篇</span>
+            <span>📰 新聞爬取: {news.filter(n => !n.isAIGenerated).length} 篇</span>
+          </div>
         </div>
 
         {/* 新聞列表 */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {news.map((article) => (
-            <Card key={article.id} className="h-full hover:shadow-lg transition-shadow group">
-              <CardHeader>
-                {/* 圖片 */}
-                <div className="aspect-video bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg mb-4 overflow-hidden">
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="text-center text-blue-600">
-                      <div className="text-4xl mb-2">📰</div>
-                      <div className="text-sm">車冷博士</div>
+        {news.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {news.map((article) => (
+              <Card key={article.id} className="h-full hover:shadow-lg transition-shadow group">
+                <CardHeader>
+                  {/* 圖片和文章類型標識 */}
+                  <div className="aspect-video bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg mb-4 overflow-hidden relative">
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="text-center text-blue-600">
+                        <div className="text-4xl mb-2">
+                          {article.isAIGenerated ? '🤖' : '📰'}
+                        </div>
+                        <div className="text-sm">
+                          {article.isAIGenerated ? 'AI 生成' : '新聞爬取'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* 來源標識 */}
+                    <div className="absolute top-2 right-2">
+                      <span className={`text-xs px-2 py-1 rounded ${
+                        article.isAIGenerated 
+                          ? 'bg-green-100 text-green-700' 
+                          : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {article.isAIGenerated ? (
+                          <><Bot className="inline h-3 w-3 mr-1" />SEO</>
+                        ) : (
+                          <><FileText className="inline h-3 w-3 mr-1" />新聞</>
+                        )}
+                      </span>
                     </div>
                   </div>
-                </div>
+                  
+                  <CardTitle className="line-clamp-2 text-lg group-hover:text-blue-600 transition-colors">
+                    <Link href={`/${locale}/news/${article.slug}`}>
+                      {article.title}
+                    </Link>
+                  </CardTitle>
+                </CardHeader>
                 
-                <CardTitle className="line-clamp-2 text-lg group-hover:text-blue-600 transition-colors">
-                  {article.title}
-                </CardTitle>
-              </CardHeader>
-              
-              <CardContent>
-                <p className="text-gray-600 line-clamp-3 mb-4">
-                  {article.excerpt}
-                </p>
+                <CardContent>
+                  <p className="text-gray-600 line-clamp-3 mb-4">
+                    {article.excerpt || '點擊查看完整內容...'}
+                  </p>
+                  
+                  {/* 標籤 */}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {(article.keywordTags.length > 0 ? article.keywordTags : article.parsedTags)
+                      .slice(0, 3)
+                      .map((tag: string, index: number) => (
+                        <span 
+                          key={index}
+                          className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded"
+                        >
+                          <Tag className="h-3 w-3" />
+                          {tag}
+                        </span>
+                      ))}
+                  </div>
+
+                  {/* 來源資訊 */}
+                  <div className="text-xs text-gray-500 mb-2">
+                    來源: {article.sourceName || '未知'}
+                    {article.author && ` | 作者: ${article.author}`}
+                  </div>
+                </CardContent>
                 
-                {/* 標籤 */}
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {article.tags.slice(0, 3).map((tag, index) => (
-                    <span 
-                      key={index}
-                      className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded"
-                    >
-                      <Tag className="h-3 w-3" />
-                      {tag}
+                <CardFooter className="flex justify-between items-center text-sm text-gray-500">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>
+                      {article.publishedAt 
+                        ? new Date(article.publishedAt).toLocaleDateString('zh-TW')
+                        : '未發布'
+                      }
                     </span>
-                  ))}
-                </div>
-              </CardContent>
-              
-              <CardFooter className="flex justify-between items-center text-sm text-gray-500">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>{new Date(article.publishedAt).toLocaleDateString('zh-TW')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Eye className="h-4 w-4" />
-                  <span>{article.viewCount}</span>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    <span>{article.viewCount}</span>
+                  </div>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          /* 無文章狀態 */
+          <div className="text-center py-16">
+            <div className="text-6xl mb-4">📰</div>
+            <h3 className="text-xl font-semibold mb-2">目前沒有文章</h3>
+            <p className="text-gray-600 mb-6">系統正在生成和爬取最新的汽車冷媒技術資訊</p>
+            <Link href={`/${locale}/refrigerant-lookup`}>
+              <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                🔍 查看冷媒規格
+              </button>
+            </Link>
+          </div>
+        )}
 
         {/* 底部聯絡資訊 */}
         <div className="mt-16 bg-gradient-to-r from-blue-50 to-blue-100 p-8 rounded-lg text-center">

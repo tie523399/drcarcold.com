@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Calendar, Eye, Tag, ArrowLeft, Share2 } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import ShareButton from './share-button'
+import { SafeImage } from '@/components/ui/safe-image'
 
 interface NewsPageProps {
   params: {
@@ -19,9 +20,16 @@ interface NewsPageProps {
 
 // 獲取單篇新聞
 async function getNewsArticle(slug: string) {
-  const article = await prisma.news.findFirst({
+  // 解碼 URL 編碼的 slug（處理中文字符）
+  const decodedSlug = decodeURIComponent(slug)
+  
+  console.log('原始 slug:', slug)
+  console.log('解碼後 slug:', decodedSlug)
+  
+  // 嘗試使用解碼後的 slug 查找
+  let article = await prisma.news.findFirst({
     where: {
-      slug: slug,
+      slug: decodedSlug,
       isPublished: true,
       publishedAt: {
         lte: new Date(),
@@ -29,7 +37,21 @@ async function getNewsArticle(slug: string) {
     },
   })
 
+  // 如果找不到，嘗試使用原始 slug
   if (!article) {
+    article = await prisma.news.findFirst({
+      where: {
+        slug: slug,
+        isPublished: true,
+        publishedAt: {
+          lte: new Date(),
+        },
+      },
+    })
+  }
+
+  if (!article) {
+    console.log('文章未找到，嘗試的 slug:', [slug, decodedSlug])
     return null
   }
 
@@ -85,8 +107,8 @@ export async function generateMetadata({ params }: NewsPageProps): Promise<Metad
   
   if (!article) {
     return {
-      title: 'Article Not Found',
-      description: 'The requested article could not be found.',
+      title: '文章未找到 - 車冷博士',
+      description: '您要查找的文章不存在或已被移除。',
     }
   }
 
@@ -145,14 +167,12 @@ export default async function NewsArticlePage({ params }: NewsPageProps) {
             <article className="bg-white rounded-lg shadow-lg overflow-hidden">
               {/* 新聞封面圖片 */}
               <div className="relative h-64 md:h-80 bg-gradient-to-br from-blue-500 to-blue-600">
-                <img
+                <SafeImage
                   src={article.coverImage || '/images/default-news.svg'}
                   alt={article.title}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/images/default-news.svg';
-                  }}
+                  fallbackSrc="/images/default-news.svg"
+                  fill={true}
                 />
                 <div className="absolute inset-0 bg-black bg-opacity-30"></div>
                 <div className="absolute bottom-4 left-4 right-4">

@@ -3,89 +3,169 @@ import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
+// 🔄 統一冷媒查詢API - 使用VehicleModel架構
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
-    const brand = searchParams.get('brand')
+    const brandName = searchParams.get('brandName') || searchParams.get('brand')
+    const modelName = searchParams.get('modelName')
+    const year = searchParams.get('year')
+    const refrigerant = searchParams.get('refrigerant')
     const search = searchParams.get('search')
     const category = searchParams.get('category')
-    const limit = parseInt(searchParams.get('limit') || '20')
+    const language = searchParams.get('language') || 'zh' // 新增語言參數，預設為中文
+    const limit = parseInt(searchParams.get('limit') || '100')
 
-    const where: any = {
-      isActive: true
-    }
+    const where: any = {}
 
     // 品牌篩選
-    if (brand) {
+    if (brandName) {
       where.brand = {
-        contains: brand
+        OR: [
+          { name: { contains: brandName } },
+          { nameEn: { contains: brandName } }
+        ]
       }
     }
 
-    // 關鍵字搜尋
-    if (search) {
+    // 車型篩選 (支持中英文)
+    if (modelName) {
       where.OR = [
-        { brand: { contains: search } },
-        { model: { contains: search } },
-        { year: { contains: search } },
-        { info: { contains: search } },
-        { refrigerant: { contains: search } }
+        ...(where.OR || []),
+        { modelName: { contains: modelName } },
+        { modelNameEn: { contains: modelName } }
       ]
     }
 
-    // 分類篩選 (如果需要)
+    // 年份篩選
+    if (year) {
+      where.year = { contains: year }
+    }
+
+    // 冷媒類型篩選
+    if (refrigerant) {
+      where.refrigerantType = { contains: refrigerant }
+    }
+
+    // 分類篩選
     if (category) {
-      switch (category) {
-        case 'regular':
-          // 一般車輛 - 只查詢常見品牌
-          where.brand = {
-            in: ['TOYOTA', 'HONDA', 'NISSAN', 'MAZDA', 'SUBARU', 'SUZUKI', 'LEXUS', 'ACURA', 'INFINITI']
-          }
-          break
-        case 'truck':
-          // 大型車輛
-          where.brand = {
-            in: ['HINO', 'FUSO', 'ISUZU', 'MITSUBISHI']
-          }
-          break
-        case 'malaysia':
-          // 馬來西亞車輛
-          where.brand = {
-            in: ['PROTON', 'PERODUA']
-          }
-          break
+      where.brand = {
+        ...where.brand,
+        category: category
       }
     }
 
-    // 查詢車輛資料
-    const vehicles = await prisma.vehicle.findMany({
+    // 關鍵字搜尋 (支持中英文)
+    if (search) {
+      where.OR = [
+        ...(where.OR || []),
+        { modelName: { contains: search } },
+        { modelNameEn: { contains: search } },
+        { year: { contains: search } },
+        { engine: { contains: search } },
+        { engineEn: { contains: search } },
+        { refrigerantType: { contains: search } },
+        { notes: { contains: search } },
+        { notesEn: { contains: search } },
+        { brand: { 
+          OR: [
+            { name: { contains: search } },
+            { nameEn: { contains: search } }
+          ]
+        } }
+      ]
+    }
+
+    // 查詢車輛型號資料（使用VehicleModel + VehicleBrand）
+    const vehicles = await prisma.vehicleModel.findMany({
       where,
+      include: {
+        brand: true
+      },
       orderBy: [
-        { brand: 'asc' },
-        { model: 'asc' },
+        { brand: { name: 'asc' } },
+        { modelName: 'asc' },
         { year: 'desc' }
       ],
       take: limit
     })
 
-    // 轉換為冷媒查詢格式
-    const results = vehicles.map(vehicle => ({
-      id: vehicle.id,
-      brand: vehicle.brand,
-      model: vehicle.model,
-      year: vehicle.year,
-      engineType: vehicle.info, // Vehicle表的額外資訊字段
-      refrigerantType: vehicle.refrigerant,
-      refrigerantAmount: vehicle.amount, // Vehicle表的冷媒量字段
-      oilType: 'PAG', // 默認油類型
-      oilAmount: vehicle.oil, // Vehicle表的冷凍油量字段
-      notes: ''
-    }))
+    // 轉換為雙語冷媒查詢格式
+    const results = vehicles.map(vehicle => {
+      const isEnglish = language === 'en'
+      
+      return {
+        id: vehicle.id,
+        // 品牌資訊 (根據語言選擇)
+        brand: isEnglish ? vehicle.brand.nameEn : vehicle.brand.name,
+        brandDisplay: isEnglish ? vehicle.brand.nameEn : vehicle.brand.name,
+        brandCn: vehicle.brand.name,
+        brandEn: vehicle.brand.nameEn,
+        brandCategory: vehicle.brand.category,
+        
+        // 車輛基本資訊 (根據語言選擇)
+        model: isEnglish ? (vehicle.modelNameEn || vehicle.modelName) : vehicle.modelName,
+        modelCn: vehicle.modelName,
+        modelEn: vehicle.modelNameEn || vehicle.modelName,
+        year: vehicle.year,
+        engine: isEnglish ? (vehicle.engineEn || vehicle.engine) : vehicle.engine,
+        engineCn: vehicle.engine,
+        engineEn: vehicle.engineEn || vehicle.engine,
+        category: isEnglish ? (vehicle.categoryEn || vehicle.category) : vehicle.category,
+        categoryCn: vehicle.category,
+        categoryEn: vehicle.categoryEn || vehicle.category,
+        
+        // 冷媒資訊
+        refrigerantType: vehicle.refrigerantType,
+        refrigerantAmount: vehicle.refrigerantAmount,
+        
+        // 冷凍油資訊
+        oilType: vehicle.oilType,
+        oilAmount: vehicle.oilAmount,
+        
+        // 額外資訊 (根據語言選擇)
+        notes: isEnglish ? (vehicle.notesEn || vehicle.notes || '') : (vehicle.notes || ''),
+        notesCn: vehicle.notes || '',
+        notesEn: vehicle.notesEn || '',
+        
+        // 語言和資料來源
+        language: language,
+        dataSource: vehicle.dataSource,
+        
+        // 向後兼容字段
+        engineType: isEnglish ? (vehicle.engineEn || vehicle.engine) : vehicle.engine,
+        fillAmount: vehicle.refrigerantAmount,
+        
+        // 完整的車輛型號資訊
+        vehicleModel: {
+          ...vehicle,
+          brand: vehicle.brand
+        }
+      }
+    })
+
+    // 取得品牌統計
+    const brandStats = await prisma.vehicleBrand.findMany({
+      where: category ? { category } : {},
+      include: {
+        _count: {
+          select: { models: true }
+        }
+      },
+      orderBy: { name: 'asc' }
+    })
 
     return NextResponse.json({
       success: true,
       data: results,
-      total: results.length
+      total: results.length,
+      brands: brandStats.map(brand => ({
+        id: brand.id,
+        name: brand.name,
+        nameEn: brand.nameEn,
+        category: brand.category,
+        modelCount: brand._count.models
+      }))
     })
 
   } catch (error) {

@@ -85,36 +85,83 @@
     "emailUs": "Email Us"
   },
   "lookup": {
-    "title": "Automotive Refrigerant Lookup System",
-    "subtitle": "Quick search for refrigerant capacity information",
+    "title": "Vehicle Refrigerant Lookup System",
+    "subtitle": "Quick search for refrigerant capacity information across vehicle brands",
+    "description": "Smart Refrigerant Lookup | Accurate Fill Amount Info | Support R134a, R1234yf and more",
     "category": {
-      "regular": "Regular Vehicle Refrigerant",
-      "regularDesc": "Car brands refrigerant information",
-      "truck": "Heavy Vehicle Refrigerant",
-      "truckDesc": "Trucks and buses",
-      "malaysia": "Malaysian Vehicle Refrigerant",
-      "malaysiaDesc": "Malaysian vehicle brands"
+      "regular": "Regular Vehicles",
+      "regularDesc": "Standard car brands refrigerant information",
+      "truck": "Heavy Vehicles",
+      "truckDesc": "Trucks, buses and commercial vehicles",
+      "malaysia": "Malaysian Vehicles",
+      "malaysiaDesc": "Malaysian vehicle brands",
+      "luxury": "Luxury Vehicles",
+      "japanese": "Japanese Vehicles",
+      "korean": "Korean Vehicles",
+      "american": "American Vehicles",
+      "european": "European Vehicles"
     },
     "search": {
-      "title": "Search Vehicle Refrigerant Info",
+      "title": "Smart Search",
+      "smartSearch": "Smart Search",
+      "brandCategory": "Brand Category",
+      "selectBrand": "Select Brand",
+      "allCategories": "All Categories",
+      "allBrands": "All Brands",
       "brand": "Select Brand",
       "brandPlaceholder": "Please select a brand",
       "model": "Search Model",
+      "modelName": "Model Name",
       "modelPlaceholder": "Enter model name",
+      "year": "Year",
+      "yearPlaceholder": "Enter year",
+      "refrigerantType": "Refrigerant Type",
+      "allRefrigerants": "All Refrigerants",
+      "globalSearch": "Keyword Search",
+      "globalSearchPlaceholder": "Search brand, model, year or refrigerant type",
       "button": "Search",
+      "reset": "Reset Search",
       "loading": "Searching..."
     },
     "results": {
       "title": "Search Results",
+      "found": "Found",
+      "results": "results",
       "model": "Model",
       "year": "Year",
-      "engine": "Engine Type",
-      "refrigerant": "Refrigerant Type",
-      "amount": "Fill Amount",
-      "oil": "Refrigerant Oil",
-      "notes": "Notes"
+      "engine": "Engine",
+      "engineType": "Engine Type",
+      "refrigerant": "Refrigerant",
+      "refrigerantType": "Refrigerant Type",
+      "amount": "Refrigerant Amount",
+      "refrigerantAmount": "Refrigerant Amount",
+      "oilType": "Oil Type",
+      "oil": "Oil Amount",
+      "oilAmount": "Oil Amount",
+      "notes": "Notes",
+      "category": "Category",
+      "brand": "Brand",
+      "information": "Information",
+      "dataSource": "Data Source"
     },
-    "noResults": "Please select brand or enter model to search"
+    "language": {
+      "switch": "Language Switch",
+      "chinese": "中文",
+      "english": "English",
+      "switchTo": "Switch to",
+      "current": "Current Language"
+    },
+    "status": {
+      "loading": "Loading...",
+      "error": "Loading failed, please try again",
+      "noResults": "No vehicles found matching your criteria",
+      "selectBrand": "Please select brand or enter model to search",
+      "totalRecords": "Total Records"
+    },
+    "disclaimer": {
+      "title": "Disclaimer",
+      "content": "This refrigerant filling amount is for reference only. For correctness, please refer to the original factory label."
+    }
   },
   "about": {
     "hero": {

@@ -1,1 +1,73 @@
- 
+<svg width="800" height="450" viewBox="0 0 800 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景漸層 -->
+  <defs>
+    <linearGradient id="videoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#374151;stop-opacity:1" />
+    </linearGradient>
+    <radialGradient id="playBtn" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="800" height="450" fill="url(#videoBg)" rx="12"/>
+  
+  <!-- 外框 -->
+  <rect x="4" y="4" width="792" height="442" fill="none" stroke="#4b5563" stroke-width="2" rx="8"/>
+  
+  <!-- 播放按鈕背景圓形 -->
+  <circle cx="400" cy="225" r="60" fill="url(#playBtn)" opacity="0.9"/>
+  <circle cx="400" cy="225" r="60" fill="none" stroke="white" stroke-width="2" opacity="0.3"/>
+  
+  <!-- 播放按鈕三角形 -->
+  <path d="M380 200 L380 250 L430 225 Z" fill="white"/>
+  
+  <!-- 汽車圖示 -->
+  <g transform="translate(250, 120)">
+    <!-- 車身 -->
+    <rect x="50" y="60" width="200" height="40" rx="20" fill="#6b7280" opacity="0.6"/>
+    <ellipse cx="150" cy="100" rx="120" ry="20" fill="#6b7280" opacity="0.4"/>
+    
+    <!-- 車窗 -->
+    <rect x="70" y="65" width="40" height="20" rx="3" fill="#374151" opacity="0.8"/>
+    <rect x="120" y="65" width="50" height="20" rx="3" fill="#374151" opacity="0.8"/>
+    <rect x="180" y="65" width="40" height="20" rx="3" fill="#374151" opacity="0.8"/>
+    
+    <!-- 車輪 -->
+    <circle cx="90" cy="100" r="12" fill="#374151"/>
+    <circle cx="210" cy="100" r="12" fill="#374151"/>
+    
+    <!-- 冷氣符號 -->
+    <g transform="translate(140, 45)">
+      <path d="M5 10 L15 10 M10 5 L10 15 M7 7 L13 7 M7 13 L13 13" stroke="#60a5fa" stroke-width="1.5" fill="none"/>
+      <circle cx="18" cy="10" r="2" fill="#60a5fa"/>
+      <circle cx="2" cy="10" r="2" fill="#60a5fa"/>
+    </g>
+  </g>
+  
+  <!-- 標題文字 -->
+  <text x="400" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white">
+    DrCarCold 技術教學影片
+  </text>
+  
+  <!-- 副標題 */
+  <text x="400" y="370" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="white" opacity="0.7">
+    專業汽車冷氣維修技術 • 實用教學內容
+  </text>
+  
+  <!-- 底部進度條 -->
+  <rect x="50" y="400" width="700" height="4" fill="#4b5563" rx="2"/>
+  <rect x="50" y="400" width="200" height="4" fill="#3b82f6" rx="2"/>
+  
+  <!-- 時間顯示 -->
+  <text x="60" y="425" font-family="Arial, sans-serif" font-size="12" fill="white" opacity="0.7">02:35</text>
+  <text x="740" y="425" font-family="Arial, sans-serif" font-size="12" fill="white" opacity="0.7">15:42</text>
+  
+  <!-- 裝飾元素 -->
+  <circle cx="120" cy="80" r="2" fill="white" opacity="0.3"/>
+  <circle cx="680" cy="120" r="3" fill="white" opacity="0.2"/>
+  <circle cx="150" cy="350" r="2" fill="white" opacity="0.4"/>
+  <circle cx="650" cy="380" r="2" fill="white" opacity="0.3"/>
+</svg>

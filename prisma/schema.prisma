@@ -15,6 +15,9 @@ model User {
   role          String    @default("ADMIN")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
+  // 關聯新聞文章
+  editedNews    News[]
 }
 
 model Product {
@@ -86,6 +89,17 @@ model News {
   publishedAt   DateTime?
   scheduledAt   DateTime?
   isPublished   Boolean   @default(false)
+  
+  // 新增欄位
+  priority      String    @default("medium")  // high, medium, low
+  category      String    @default("general") // technical, product, industry, general
+  status        String    @default("draft")   // draft, review, published, archived
+  isFeatured    Boolean   @default(false)     // 是否為特色文章
+  language      String    @default("zh")      // zh, en
+  editorId      String?                       // 編輯者 ID（關聯到 User）
+  metadata      String    @default("{}")      // 額外元數據 (JSON)
+  
+  // SEO 相關欄位
   seoTitle      String?
   seoDescription String?
   seoKeywords   String?   // SEO 關鍵字
@@ -95,13 +109,19 @@ model News {
   ogImage       String?   // Open Graph 圖片
   structuredData String?  // JSON-LD 結構化資料
   readingTime   Int?      // 閱讀時間（分鐘）
+  
+  // 來源相關欄位
   sourceUrl     String?   // 原始文章連結
   sourceName    String?   // 來源網站名稱
   sourceId      String?   // 新聞來源 ID
   contentHash   String?   // 內容哈希值，用於去重
   relatedNews   String?   // 相關新聞 ID 列表 (JSON)
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  // 關聯編輯者
+  editor        User?     @relation(fields: [editorId], references: [id])
 
   @@index([slug])
   @@index([publishedAt])
@@ -109,6 +129,11 @@ model News {
   @@index([sourceName])
   @@index([sourceId])
   @@index([contentHash])
+  @@index([priority])
+  @@index([category])
+  @@index([status])
+  @@index([language])
+  @@index([isFeatured])
 }
 
 model Setting {
@@ -116,6 +141,22 @@ model Setting {
   key       String   @unique
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model SeoRanking {
+  id        String   @id @default(cuid())
+  keyword   String
+  position  Int?
+  url       String?
+  title     String?
+  found     Boolean  @default(false)
+  error     String?
+  domain    String
+  checkedAt DateTime @default(now())
+  
+  @@index([keyword, domain])
+  @@index([checkedAt])
+  @@map("seo_rankings")
 }
 
 model VehicleBrand {
@@ -132,22 +173,46 @@ model VehicleBrand {
 }
 
 model VehicleModel {
-  id              String    @id @default(cuid())
+  id              String       @id @default(cuid())
   brandId         String
-  brand           VehicleBrand @relation(fields: [brandId], references: [id])
-  modelName       String
-  year            String?
-  engineType      String?
-  refrigerantType String    // R134a, R1234yf, etc
-  fillAmount      String    // 充填量
-  oilType         String?   // 冷凍油類型
-  oilAmount       String?   // 油量
-  notes           String?   // 備註
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  brand           VehicleBrand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  
+  // 車輛基本資訊 (中文版)
+  modelName       String       // 車型名稱 (如: 320i, X3, ACCORD)
+  year            String?      // 年份範圍 (如: 2019-2023)
+  engine          String?      // 引擎規格 (如: 2.0L 渦輪, 1.5T/2.0L)
+  category        String?      // 車輛類別 (如: 馬來西亞車, 豪華轎車, SUV型)
+  
+  // 車輛基本資訊 (英文版)
+  modelNameEn     String?      // 英文車型名稱 (如: 320i, X3, ACCORD)
+  engineEn        String?      // 英文引擎規格 (如: 2.0L Turbo, 1.5T/2.0L)
+  categoryEn      String?      // 英文車輛類別 (如: Malaysia Cars, Luxury Sedan, SUV)
+  
+  // 冷媒相關資訊
+  refrigerantType String       // 冷媒類型 (如: R-1234yf, R134a)
+  refrigerantAmount String     // 冷媒充填量 (如: 750g, 480±25g)
+  
+  // 冷凍油相關資訊
+  oilType         String?      // 油品類型 (如: PAG 100, PAG 46, ND-OIL 8)
+  oilAmount       String?      // 油品用量 (如: 180ml, 130±10ml)
+  
+  // 額外資訊 (中英文)
+  notes           String?      // 中文備註 (如: 豪華轎車, 純電動車, 新款採用環保冷媒)
+  notesEn         String?      // 英文備註 (如: Luxury Sedan, Electric Vehicle, New eco-friendly refrigerant)
+  
+  // 資料來源標識
+  dataSource      String?      // 資料來源 (如: 中文版, 英文版, 馬來西亞版)
+  
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
   @@index([brandId])
   @@index([modelName])
+  @@index([modelNameEn])
+  @@index([refrigerantType])
+  @@index([year])
+  @@index([category])
+  @@index([dataSource])
 }
 
 model Banner {
@@ -336,24 +401,5 @@ model Contact {
   @@index([source])
 }
 
-model Vehicle {
-  id            String    @id @default(cuid())
-  brand         String    // 車廠品牌
-  model         String    // 車型
-  info          String?   // 額外資訊
-  year          String?   // 年份
-  refrigerant   String?   // 冷媒類型 (R134a, R1234yf等)
-  amount        String?   // 冷媒量 (g)
-  oil           String?   // 冷凍油量 (cc)
-  source        String    @default("import") // 數據來源
-  isActive      Boolean   @default(true)  // 是否啟用
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@index([brand])
-  @@index([model])
-  @@index([refrigerant])
-  @@index([year])
-  @@index([source])
-  @@index([isActive])
-}
+// 舊的 Vehicle 模型已廢棄，請使用 VehicleBrand + VehicleModel 架構
+// 此模型將在下次遷移時移除

@@ -4,11 +4,14 @@ import { generateImageForExistingNews } from '@/lib/news-image-generator'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🖼️ 開始為新聞生成圖片...')
+    const body = await request.json().catch(() => ({}))
+    const forceUpdate = body.forceUpdate === true
     
-    // 獲取所有沒有封面圖片的新聞
-    const newsWithoutImages = await prisma.news.findMany({
-      where: {
+    console.log(`🖼️ 開始為新聞生成圖片... ${forceUpdate ? '(強制更新模式)' : '(只更新缺失圖片)'}`)
+    
+    // 根據模式選擇要更新的新聞
+    const newsToUpdate = await prisma.news.findMany({
+      where: forceUpdate ? {} : {
         OR: [
           { coverImage: null },
           { coverImage: '' },
@@ -20,18 +23,22 @@ export async function POST(request: NextRequest) {
         content: true,
         tags: true,
         sourceName: true,
-      }
+        coverImage: true,
+        ogImage: true,
+      },
+      orderBy: { createdAt: 'desc' }
     })
 
-    console.log(`找到 ${newsWithoutImages.length} 篇需要生成圖片的新聞`)
+    console.log(`找到 ${newsToUpdate.length} 篇需要生成圖片的新聞`)
 
     let updatedCount = 0
+    let skippedCount = 0
     const results = []
 
-    for (const news of newsWithoutImages) {
+    for (const news of newsToUpdate) {
       try {
         // 生成圖片資訊
-        const imageData = generateImageForExistingNews(news)
+        const imageData = await generateImageForExistingNews(news)
         
         // 更新新聞記錄
         await prisma.news.update({
@@ -46,6 +53,8 @@ export async function POST(request: NextRequest) {
           id: news.id,
           title: news.title.substring(0, 50) + '...',
           coverImage: imageData.coverImage,
+          ogImage: imageData.ogImage,
+          previousImage: news.coverImage,
           status: 'updated'
         })
 
@@ -65,8 +74,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `成功為 ${updatedCount} 篇新聞生成圖片`,
-      totalProcessed: newsWithoutImages.length,
+      totalProcessed: newsToUpdate.length,
       updatedCount,
+      skippedCount,
+      forceUpdate,
       results
     })
 
