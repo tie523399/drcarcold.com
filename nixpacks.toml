@@ -1,6 +1,6 @@
 # Nixpacks 配置文件
 [phases.setup]
-nixPkgs = ["nodejs_18", "npm"]
+nixPkgs = ["nodejs_18"]
 
 [phases.install]
 cmds = [
